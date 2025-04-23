@@ -1,25 +1,38 @@
-# github_client.py
+# github_project.py
 import os
 import requests
 from dotenv import load_dotenv
 
-load_dotenv()  # Load environment variables from .env file
+load_dotenv()
 
-class GitHubProjectClient:
+class GithubProject:
     def __init__(self):
         self.token = os.getenv("GITHUB_TOKEN")
         self.owner = os.getenv("GITHUB_OWNER")
         self.project_number = int(os.getenv("PROJECT_NUMBER"))
-        self.url = "https://api.github.com/graphql"
+        self.api_url = "https://api.github.com/graphql"
         self.headers = {
             "Authorization": f"Bearer {self.token}",
             "Content-Type": "application/json"
         }
+        # Get the essential IDs we need
         self.project_id = self._get_project_id()
-        self.field_info = self._get_field_info()
-        
+        self.fields = self._get_fields()
+    
+    def _request(self, query, variables=None):
+        """Send GraphQL request and return response data"""
+        if variables is None:
+            variables = {}
+        response = requests.post(
+            self.api_url,
+            headers=self.headers,
+            json={"query": query, "variables": variables}
+        )
+        response.raise_for_status()
+        return response.json()
+    
     def _get_project_id(self):
-        # Query to get the project ID
+        """Get project ID from project number"""
         query = """
         query($owner: String!, $number: Int!) {
           user(login: $owner) {
@@ -29,16 +42,14 @@ class GitHubProjectClient:
           }
         }
         """
-        variables = {
+        result = self._request(query, {
             "owner": self.owner,
             "number": self.project_number
-        }
-        
-        response = self._execute_query(query, variables)
-        return response["data"]["user"]["projectV2"]["id"]
+        })
+        return result["data"]["user"]["projectV2"]["id"]
     
-    def _get_field_info(self):
-        # Get all field IDs and their options
+    def _get_fields(self):
+        """Get all fields and their options"""
         query = """
         query($projectId: ID!) {
           node(id: $projectId) {
@@ -67,40 +78,55 @@ class GitHubProjectClient:
           }
         }
         """
+        result = self._request(query, {"projectId": self.project_id})
         
-        variables = {
-            "projectId": self.project_id
-        }
-        
-        response = self._execute_query(query, variables)
-        fields = response["data"]["node"]["fields"]["nodes"]
-        
-        # Transform into a more usable structure
-        field_info = {}
-        for field in fields:
-            field_info[field["name"]] = {
-                "id": field["id"],
-                "options": {opt["name"]: opt["id"] for opt in field.get("options", [])} if "options" in field else None
-            }
+        fields = {}
+        for field in result["data"]["node"]["fields"]["nodes"]:
+            name = field["name"]
+            field_data = {"id": field["id"]}
             
-        return field_info
+            # Add options if this is a select field
+            if "options" in field:
+                field_data["options"] = {opt["name"]: opt["id"] for opt in field["options"]}
+                
+            fields[name] = field_data
+            
+        return fields
     
-    def _execute_query(self, query, variables):
-        response = requests.post(
-            self.url,
-            headers=self.headers,
-            json={"query": query, "variables": variables}
-        )
+    def create_task(self, task):
+        """Create a task with all provided fields"""
+        # 1. Create the item
+        item_id = self._create_item(task["title"], task.get("description"))
         
-        response.raise_for_status()  # Raise exception for HTTP errors
-        return response.json()
+        # 2. Set the status if present in task and fields
+        if "status" in task and "Status" in self.fields and "options" in self.fields["Status"]:
+            self._update_select_field(item_id, "Status", task["status"])
+        
+        # 3. Set priority if present
+        if "priority" in task and "Priority" in self.fields and "options" in self.fields["Priority"]:
+            self._update_select_field(item_id, "Priority", task["priority"])
+        
+        # 4. Set size if present
+        if "size" in task and "Size" in self.fields and "options" in self.fields["Size"]:
+            self._update_select_field(item_id, "Size", task["size"])
+        
+        # 5. Set dates if present
+        if "start_date" in task and "Start date" in self.fields:
+            self._update_date_field(item_id, "Start date", task["start_date"])
+            
+        if "due_date" in task and "Due date" in self.fields:
+            self._update_date_field(item_id, "Due date", task["due_date"])
+            
+        return item_id
     
-    def create_draft_item(self, title, description=None):
+    def _create_item(self, title, description=None):
+        """Create a draft item"""
         mutation = """
-        mutation($projectId: ID!, $title: String!) {
+        mutation($projectId: ID!, $title: String!, $body: String) {
           addProjectV2DraftItem(input: {
             projectId: $projectId
             title: $title
+            body: $body
           }) {
             projectItem {
               id
@@ -108,18 +134,17 @@ class GitHubProjectClient:
           }
         }
         """
-        
-        variables = {
+        result = self._request(mutation, {
             "projectId": self.project_id,
-            "title": title
-        }
-        
-        response = self._execute_query(mutation, variables)
-        return response["data"]["addProjectV2DraftItem"]["projectItem"]["id"]
+            "title": title,
+            "body": description
+        })
+        return result["data"]["addProjectV2DraftItem"]["projectItem"]["id"]
     
-    def set_select_field(self, item_id, field_name, option_value):
-        field_id = self.field_info[field_name]["id"]
-        option_id = self.field_info[field_name]["options"][option_value]
+    def _update_select_field(self, item_id, field_name, option_value):
+        """Update a select field with the given option"""
+        field_id = self.fields[field_name]["id"]
+        option_id = self.fields[field_name]["options"][option_value]
         
         mutation = """
         mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
@@ -137,18 +162,16 @@ class GitHubProjectClient:
           }
         }
         """
-        
-        variables = {
+        self._request(mutation, {
             "projectId": self.project_id,
             "itemId": item_id,
             "fieldId": field_id,
             "optionId": option_id
-        }
-        
-        return self._execute_query(mutation, variables)
+        })
     
-    def set_date_field(self, item_id, field_name, date_string):
-        field_id = self.field_info[field_name]["id"]
+    def _update_date_field(self, item_id, field_name, date_string):
+        """Update a date field (format: YYYY-MM-DD)"""
+        field_id = self.fields[field_name]["id"]
         
         mutation = """
         mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $date: Date!) {
@@ -166,12 +189,9 @@ class GitHubProjectClient:
           }
         }
         """
-        
-        variables = {
+        self._request(mutation, {
             "projectId": self.project_id,
             "itemId": item_id,
             "fieldId": field_id,
-            "date": date_string  # Format: YYYY-MM-DD
-        }
-        
-        return self._execute_query(mutation, variables)
+            "date": date_string
+        })

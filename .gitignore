@@ -1,3 +1,5 @@
-.env
+Kanban\.env
 config.json
 **/credentials/*
+Kanban/.env
+.env

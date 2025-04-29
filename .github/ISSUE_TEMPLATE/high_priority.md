@@ -11,17 +11,12 @@ assignees: ''
 
 ## Why is this high priority?
 <!-- Explain what makes this task urgent or critical -->
-- [ ] Blocker for critical feature/release
-- [ ] Affects core functionality
-- [ ] Security concern
-- [ ] Stakeholder urgency
-- [ ] Other: 
 
 ## Impact of Delay
 <!-- What happens if this task isn't completed quickly? -->
 
-## Technical Details
-<!-- Include all relevant technical details needed for implementation -->
+## Technical Context
+<!-- Technical background or considerations relevant to implementation, description of considerations in language or visual graphs, not code. -->
 
 ## Acceptance Criteria
 <!-- What needs to be true for this task to be considered complete? -->

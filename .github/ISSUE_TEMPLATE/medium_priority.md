@@ -9,11 +9,8 @@ assignees: ''
 ## Description
 <!-- Provide a clear and concise description of the task -->
 
-## Business Value
-<!-- What's the value of completing this task? How does it help users or stakeholders? -->
-
 ## Technical Context
-<!-- Technical background or considerations relevant to implementation -->
+<!-- Technical background or considerations relevant to implementation, description of considerations in language or visual graphs, not code. -->
 
 ## Acceptance Criteria
 <!-- What needs to be true for this task to be considered complete? -->

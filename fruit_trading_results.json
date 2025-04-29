@@ -1,0 +1,601 @@
+{
+  "config": {
+    "num_agents": 8,
+    "num_fruits": 5,
+    "num_rounds": 10,
+    "fruits": [
+      "Apple",
+      "Banana",
+      "Cherry",
+      "Durian",
+      "Elderberry"
+    ]
+  },
+  "efficiency": {
+    "initial_utility": 2055.922129429571,
+    "final_utility": 2456.6624546051025,
+    "utility_gain": 400.7403251755313,
+    "utility_gain_pct": 19.4919992075147,
+    "total_trades": 40,
+    "utility_per_trade": 10.018508129388284,
+    "agents_better_off": 8,
+    "agents_worse_off": 0,
+    "agents_same": 0
+  },
+  "rounds": [
+    {
+      "round": 0,
+      "total_utility": 2055.922119140625,
+      "agent_utilities": [
+        297.4710998535156,
+        230.9878387451172,
+        216.6532440185547,
+        213.75521850585938,
+        303.7574157714844,
+        300.5145263671875,
+        237.3932342529297,
+        255.38954162597656
+      ]
+    },
+    {
+      "round": 1,
+      "total_utility": 2094.08154296875,
+      "agent_utilities": [
+        303.37481689453125,
+        239.44949340820312,
+        223.0535888671875,
+        213.75521850585938,
+        303.7574157714844,
+        309.03704833984375,
+        246.26455688476562,
+        255.38954162597656
+      ],
+      "trades": [
+        {
+          "agent_i": 0,
+          "agent_j": 1,
+          "fruit_i": 4,
+          "fruit_i_name": "Elderberry",
+          "amount_i": 1,
+          "fruit_j": 2,
+          "fruit_j_name": "Cherry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 2,
+          "agent_j": 5,
+          "fruit_i": 0,
+          "fruit_i_name": "Apple",
+          "amount_i": 1,
+          "fruit_j": 3,
+          "fruit_j_name": "Durian",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 2,
+          "agent_j": 6,
+          "fruit_i": 0,
+          "fruit_i_name": "Apple",
+          "amount_i": 1,
+          "fruit_j": 1,
+          "fruit_j_name": "Banana",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 5,
+          "agent_j": 6,
+          "fruit_i": 4,
+          "fruit_i_name": "Elderberry",
+          "amount_i": 1,
+          "fruit_j": 1,
+          "fruit_j_name": "Banana",
+          "amount_j": 1
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "total_utility": 2142.50439453125,
+      "agent_utilities": [
+        311.8643493652344,
+        255.04261779785156,
+        225.32574462890625,
+        213.75521850585938,
+        303.7574157714844,
+        309.03704833984375,
+        256.44091796875,
+        267.28131103515625
+      ],
+      "trades": [
+        {
+          "agent_i": 0,
+          "agent_j": 6,
+          "fruit_i": 4,
+          "fruit_i_name": "Elderberry",
+          "amount_i": 1,
+          "fruit_j": 1,
+          "fruit_j_name": "Banana",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 1,
+          "agent_j": 6,
+          "fruit_i": 3,
+          "fruit_i_name": "Durian",
+          "amount_i": 1,
+          "fruit_j": 0,
+          "fruit_j_name": "Apple",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 1,
+          "agent_j": 7,
+          "fruit_i": 2,
+          "fruit_i_name": "Cherry",
+          "amount_i": 1,
+          "fruit_j": 4,
+          "fruit_j_name": "Elderberry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 2,
+          "agent_j": 7,
+          "fruit_i": 0,
+          "fruit_i_name": "Apple",
+          "amount_i": 1,
+          "fruit_j": 4,
+          "fruit_j_name": "Elderberry",
+          "amount_j": 1
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "total_utility": 2177.454345703125,
+      "agent_utilities": [
+        324.1423645019531,
+        263.5042724609375,
+        225.32574462890625,
+        213.75521850585938,
+        306.0267639160156,
+        314.8026428222656,
+        262.6161804199219,
+        267.28131103515625
+      ],
+      "trades": [
+        {
+          "agent_i": 0,
+          "agent_j": 1,
+          "fruit_i": 4,
+          "fruit_i_name": "Elderberry",
+          "amount_i": 1,
+          "fruit_j": 2,
+          "fruit_j_name": "Cherry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 0,
+          "agent_j": 4,
+          "fruit_i": 3,
+          "fruit_i_name": "Durian",
+          "amount_i": 1,
+          "fruit_j": 2,
+          "fruit_j_name": "Cherry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 0,
+          "agent_j": 5,
+          "fruit_i": 0,
+          "fruit_i_name": "Apple",
+          "amount_i": 1,
+          "fruit_j": 1,
+          "fruit_j_name": "Banana",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 5,
+          "agent_j": 6,
+          "fruit_i": 4,
+          "fruit_i_name": "Elderberry",
+          "amount_i": 1,
+          "fruit_j": 1,
+          "fruit_j_name": "Banana",
+          "amount_j": 1
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "total_utility": 2226.669189453125,
+      "agent_utilities": [
+        338.5356140136719,
+        271.96588134765625,
+        225.32574462890625,
+        219.2653045654297,
+        310.712158203125,
+        318.61639404296875,
+        274.9667053222656,
+        267.28131103515625
+      ],
+      "trades": [
+        {
+          "agent_i": 0,
+          "agent_j": 1,
+          "fruit_i": 4,
+          "fruit_i_name": "Elderberry",
+          "amount_i": 1,
+          "fruit_j": 2,
+          "fruit_j_name": "Cherry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 0,
+          "agent_j": 3,
+          "fruit_i": 4,
+          "fruit_i_name": "Elderberry",
+          "amount_i": 1,
+          "fruit_j": 1,
+          "fruit_j_name": "Banana",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 4,
+          "agent_j": 6,
+          "fruit_i": 4,
+          "fruit_i_name": "Elderberry",
+          "amount_i": 1,
+          "fruit_j": 1,
+          "fruit_j_name": "Banana",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 5,
+          "agent_j": 6,
+          "fruit_i": 4,
+          "fruit_i_name": "Elderberry",
+          "amount_i": 1,
+          "fruit_j": 1,
+          "fruit_j_name": "Banana",
+          "amount_j": 1
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "total_utility": 2265.4970703125,
+      "agent_utilities": [
+        344.0824890136719,
+        279.0973815917969,
+        225.32574462890625,
+        219.2653045654297,
+        317.66693115234375,
+        318.61639404296875,
+        291.8402404785156,
+        269.6024475097656
+      ],
+      "trades": [
+        {
+          "agent_i": 0,
+          "agent_j": 6,
+          "fruit_i": 3,
+          "fruit_i_name": "Durian",
+          "amount_i": 1,
+          "fruit_j": 1,
+          "fruit_j_name": "Banana",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 1,
+          "agent_j": 6,
+          "fruit_i": 3,
+          "fruit_i_name": "Durian",
+          "amount_i": 1,
+          "fruit_j": 0,
+          "fruit_j_name": "Apple",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 4,
+          "agent_j": 6,
+          "fruit_i": 4,
+          "fruit_i_name": "Elderberry",
+          "amount_i": 1,
+          "fruit_j": 1,
+          "fruit_j_name": "Banana",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 4,
+          "agent_j": 7,
+          "fruit_i": 2,
+          "fruit_i_name": "Cherry",
+          "amount_i": 1,
+          "fruit_j": 3,
+          "fruit_j_name": "Durian",
+          "amount_j": 1
+        }
+      ]
+    },
+    {
+      "round": 6,
+      "total_utility": 2309.66162109375,
+      "agent_utilities": [
+        349.62939453125,
+        286.7703857421875,
+        225.32574462890625,
+        231.7645721435547,
+        323.6495361328125,
+        324.3819885253906,
+        298.53741455078125,
+        269.6024475097656
+      ],
+      "trades": [
+        {
+          "agent_i": 0,
+          "agent_j": 6,
+          "fruit_i": 3,
+          "fruit_i_name": "Durian",
+          "amount_i": 1,
+          "fruit_j": 1,
+          "fruit_j_name": "Banana",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 1,
+          "agent_j": 4,
+          "fruit_i": 3,
+          "fruit_i_name": "Durian",
+          "amount_i": 1,
+          "fruit_j": 4,
+          "fruit_j_name": "Elderberry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 3,
+          "agent_j": 4,
+          "fruit_i": 3,
+          "fruit_i_name": "Durian",
+          "amount_i": 1,
+          "fruit_j": 4,
+          "fruit_j_name": "Elderberry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 3,
+          "agent_j": 5,
+          "fruit_i": 0,
+          "fruit_i_name": "Apple",
+          "amount_i": 1,
+          "fruit_j": 4,
+          "fruit_j_name": "Elderberry",
+          "amount_j": 1
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "total_utility": 2345.81640625,
+      "agent_utilities": [
+        349.62939453125,
+        286.7703857421875,
+        229.8700714111328,
+        236.5357208251953,
+        327.0254211425781,
+        330.1475830078125,
+        304.3438415527344,
+        281.4942321777344
+      ],
+      "trades": [
+        {
+          "agent_i": 2,
+          "agent_j": 4,
+          "fruit_i": 0,
+          "fruit_i_name": "Apple",
+          "amount_i": 1,
+          "fruit_j": 4,
+          "fruit_j_name": "Elderberry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 2,
+          "agent_j": 7,
+          "fruit_i": 0,
+          "fruit_i_name": "Apple",
+          "amount_i": 1,
+          "fruit_j": 4,
+          "fruit_j_name": "Elderberry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 3,
+          "agent_j": 5,
+          "fruit_i": 0,
+          "fruit_i_name": "Apple",
+          "amount_i": 1,
+          "fruit_j": 4,
+          "fruit_j_name": "Elderberry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 6,
+          "agent_j": 7,
+          "fruit_i": 2,
+          "fruit_i_name": "Cherry",
+          "amount_i": 1,
+          "fruit_j": 4,
+          "fruit_j_name": "Elderberry",
+          "amount_j": 1
+        }
+      ]
+    },
+    {
+      "round": 8,
+      "total_utility": 2384.62744140625,
+      "agent_utilities": [
+        352.5904846191406,
+        302.1163635253906,
+        231.80950927734375,
+        236.5357208251953,
+        330.0167236328125,
+        335.91314697265625,
+        314.1513671875,
+        281.4942321777344
+      ],
+      "trades": [
+        {
+          "agent_i": 0,
+          "agent_j": 6,
+          "fruit_i": 3,
+          "fruit_i_name": "Durian",
+          "amount_i": 1,
+          "fruit_j": 2,
+          "fruit_j_name": "Cherry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 1,
+          "agent_j": 2,
+          "fruit_i": 3,
+          "fruit_i_name": "Durian",
+          "amount_i": 1,
+          "fruit_j": 4,
+          "fruit_j_name": "Elderberry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 1,
+          "agent_j": 4,
+          "fruit_i": 3,
+          "fruit_i_name": "Durian",
+          "amount_i": 1,
+          "fruit_j": 4,
+          "fruit_j_name": "Elderberry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 5,
+          "agent_j": 6,
+          "fruit_i": 4,
+          "fruit_i_name": "Elderberry",
+          "amount_i": 1,
+          "fruit_j": 0,
+          "fruit_j_name": "Apple",
+          "amount_j": 1
+        }
+      ]
+    },
+    {
+      "round": 9,
+      "total_utility": 2424.502197265625,
+      "agent_utilities": [
+        352.5904846191406,
+        310.0364990234375,
+        233.83236694335938,
+        246.33480834960938,
+        330.0167236328125,
+        338.67010498046875,
+        326.2861633300781,
+        286.7350158691406
+      ],
+      "trades": [
+        {
+          "agent_i": 1,
+          "agent_j": 3,
+          "fruit_i": 2,
+          "fruit_i_name": "Cherry",
+          "amount_i": 1,
+          "fruit_j": 0,
+          "fruit_j_name": "Apple",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 2,
+          "agent_j": 5,
+          "fruit_i": 1,
+          "fruit_i_name": "Banana",
+          "amount_i": 1,
+          "fruit_j": 3,
+          "fruit_j_name": "Durian",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 3,
+          "agent_j": 6,
+          "fruit_i": 3,
+          "fruit_i_name": "Durian",
+          "amount_i": 1,
+          "fruit_j": 2,
+          "fruit_j_name": "Cherry",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 6,
+          "agent_j": 7,
+          "fruit_i": 2,
+          "fruit_i_name": "Cherry",
+          "amount_i": 1,
+          "fruit_j": 4,
+          "fruit_j_name": "Elderberry",
+          "amount_j": 1
+        }
+      ]
+    },
+    {
+      "round": 10,
+      "total_utility": 2456.662353515625,
+      "agent_utilities": [
+        352.5904846191406,
+        310.0364990234375,
+        235.77178955078125,
+        254.0629425048828,
+        335.6619567871094,
+        338.67010498046875,
+        335.57177734375,
+        294.2969055175781
+      ],
+      "trades": [
+        {
+          "agent_i": 2,
+          "agent_j": 3,
+          "fruit_i": 4,
+          "fruit_i_name": "Elderberry",
+          "amount_i": 1,
+          "fruit_j": 3,
+          "fruit_j_name": "Durian",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 4,
+          "agent_j": 6,
+          "fruit_i": 4,
+          "fruit_i_name": "Elderberry",
+          "amount_i": 1,
+          "fruit_j": 0,
+          "fruit_j_name": "Apple",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 4,
+          "agent_j": 7,
+          "fruit_i": 2,
+          "fruit_i_name": "Cherry",
+          "amount_i": 1,
+          "fruit_j": 3,
+          "fruit_j_name": "Durian",
+          "amount_j": 1
+        },
+        {
+          "agent_i": 6,
+          "agent_j": 7,
+          "fruit_i": 2,
+          "fruit_i_name": "Cherry",
+          "amount_i": 1,
+          "fruit_j": 4,
+          "fruit_j_name": "Elderberry",
+          "amount_j": 1
+        }
+      ]
+    }
+  ]
+}

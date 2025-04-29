@@ -15,7 +15,4 @@ The project is organized into modules:
 
 ## Running the Simulation
 
-To run the demonstration:
-
-```bash
-python main.py
+Simply run the main files inside of the graph transformation folder to test it out.

@@ -4,3 +4,4 @@ config.json
 .env
 text
 .json
+__pycache__

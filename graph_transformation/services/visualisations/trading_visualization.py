@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 import networkx as nx
 from matplotlib.ticker import MaxNLocator
 
-from core.graph_state import GraphState
+from graph_transformation.core.graph import GraphState
 
 
 class TradingVisualizer:

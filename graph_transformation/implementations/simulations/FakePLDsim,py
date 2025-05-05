@@ -1,0 +1,161 @@
+import pandas as pd
+import numpy as np
+import os
+
+# Create output directory
+os.makedirs("simulation_results", exist_ok=True)
+
+# Set seed for reproducibility
+np.random.seed(42)
+
+# Constants
+ROUNDS = 30
+AGENTS = 10
+ADVERSARIAL_AGENTS = [3, 7]  # Agents 3 and 7 are adversarial
+CROPS = ["Wheat", "Corn", "Rice", "Potatoes", "Soybeans"]
+MECHANISMS = ["PDD", "PRD", "PLD"]
+
+# Round data
+round_rows = []
+for mech in MECHANISMS:
+    # Base performance characteristics
+    base_accuracy = 0.72 if mech == "PRD" else (0.65 if mech == "PLD" else 0.60)
+    accuracy_improvement = 0.01 if mech == "PLD" else (0.002 if mech == "PRD" else 0.005)
+    
+    for round_num in range(1, ROUNDS+1):
+        # Calculate metrics with some randomness
+        accuracy = min(0.95, base_accuracy + accuracy_improvement * round_num + np.random.normal(0, 0.03))
+        resources = 1000 + round_num * 50 * accuracy + np.random.normal(0, 50)
+        
+        round_rows.append({
+            "simulation_id": f"{mech}_sim1",
+            "round": round_num,
+            "mechanism_type": mech,  # Using mechanism_type as column name
+            "adversarial_pct": 20,
+            "total_resources": max(0, int(resources)),
+            "allocation_accuracy": round(accuracy, 3),
+            "best_performing_crop": np.random.choice(CROPS),
+            "adversary_voting_power": round(0.2 - (round_num * 0.005 if mech == "PLD" else 0), 3),
+        })
+
+# Create rounds CSV
+rounds_df = pd.DataFrame(round_rows)
+rounds_df.to_csv("simulation_results/round_metrics.csv", index=False)
+
+# Agent data
+agent_rows = []
+for mech in MECHANISMS:
+    for round_num in range(1, ROUNDS+1):
+        # Get corresponding round info
+        round_info = rounds_df[(rounds_df["mechanism_type"] == mech) & 
+                              (rounds_df["round"] == round_num)].iloc[0]
+        
+        for agent_id in range(AGENTS):
+            is_adversarial = agent_id in ADVERSARIAL_AGENTS
+            expertise = round(np.random.beta(5, 2) if not is_adversarial else np.random.beta(2, 5), 3)
+            
+            # PLD delegation dynamics
+            delegations = 0
+            if mech == "PLD" and expertise > 0.7 and not is_adversarial:
+                delegations = round_num // 5 + np.random.randint(0, 3)
+            
+            agent_rows.append({
+                "simulation_id": f"{mech}_sim1",
+                "round": round_num,
+                "mechanism_type": mech,  # Using mechanism_type consistently
+                "agent_id": agent_id,
+                "is_adversarial": int(is_adversarial),
+                "expertise_level": expertise,
+                "resources_controlled": int(round_info["total_resources"] / AGENTS * (1 + np.random.normal(0, 0.2))),
+                "voting_power": 1 if mech != "PLD" else 1 + delegations,
+                "delegations_received": delegations
+            })
+
+# Create agent CSV
+agent_df = pd.DataFrame(agent_rows)
+agent_df.to_csv("simulation_results/agent_metrics.csv", index=False)
+
+# Crop data
+crop_rows = []
+for mech in MECHANISMS:
+    for round_num in range(1, ROUNDS+1):
+        # Get corresponding round info
+        round_info = rounds_df[(rounds_df["mechanism_type"] == mech) & 
+                              (rounds_df["round"] == round_num)].iloc[0]
+        
+        # Create allocation percentages (sum to 100%)
+        allocations = np.random.dirichlet(np.ones(len(CROPS))*2)
+        
+        for i, crop_name in enumerate(CROPS):
+            # Crop yields - Wheat consistently better
+            actual_yield = 8 + np.random.normal(0, 1) if crop_name == "Wheat" else (
+                          7 + np.random.normal(0, 1.5) if crop_name == "Corn" else 
+                          5 + np.random.normal(0, 2))
+                          
+            crop_rows.append({
+                "simulation_id": f"{mech}_sim1",
+                "round": round_num,
+                "mechanism_type": mech,  # Consistent naming
+                "crop_id": i,
+                "crop_name": crop_name,
+                "allocation_pct": round(allocations[i], 3),
+                "actual_yield": round(actual_yield, 2),
+                "total_allocation": int(allocations[i] * round_info["total_resources"])
+            })
+
+# Create crop CSV
+crop_df = pd.DataFrame(crop_rows)
+crop_df.to_csv("simulation_results/crop_metrics.csv", index=False)
+
+# Delegation network (PLD only)
+if "PLD" in MECHANISMS:
+    delegation_rows = []
+    
+    for round_num in range(1, ROUNDS+1):
+        # Find potential delegates (higher expertise agents)
+        pld_agents = agent_df[(agent_df["mechanism_type"] == "PLD") & 
+                            (agent_df["round"] == round_num)]
+        
+        # Identify high-expertise, non-adversarial agents as delegates
+        for agent_id in range(AGENTS):
+            agent_row = pld_agents[pld_agents["agent_id"] == agent_id].iloc[0]
+            
+            # Skip adversarial agents as delegates after early rounds
+            if agent_id in ADVERSARIAL_AGENTS and round_num > 5:
+                continue
+                
+            # Process delegations received
+            delegations = int(agent_row["delegations_received"])
+            
+            if delegations > 0:
+                # Find low-expertise agents that could delegate
+                potential_delegators = []
+                for other_id in range(AGENTS):
+                    if other_id == agent_id:  # No self-delegation
+                        continue
+                        
+                    # Get other agent's row
+                    other_row = pld_agents[pld_agents["agent_id"] == other_id].iloc[0]
+                    
+                    # Lower expertise agents delegate to higher expertise
+                    if other_row["expertise_level"] < agent_row["expertise_level"]:
+                        potential_delegators.append(other_id)
+                
+                # Record delegations (up to actual count received)
+                for d_id in potential_delegators[:delegations]:
+                    delegation_rows.append({
+                        "simulation_id": "PLD_sim1",
+                        "round": round_num,
+                        "delegator_id": d_id,
+                        "delegate_id": agent_id,
+                        "delegator_expertise": pld_agents[pld_agents["agent_id"] == d_id].iloc[0]["expertise_level"],
+                        "delegate_expertise": agent_row["expertise_level"],
+                        "delegator_is_adversarial": int(d_id in ADVERSARIAL_AGENTS),
+                    })
+    
+    # Create delegation CSV if we have data
+    if delegation_rows:
+        delegation_df = pd.DataFrame(delegation_rows)
+        delegation_df.to_csv("simulation_results/delegation_network.csv", index=False)
+
+print("CSV files created successfully in simulation_results directory.")

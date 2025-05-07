@@ -41,6 +41,32 @@ class ExperimentConfig:
     track_resource_metrics: bool = True
     track_information_metrics: bool = True
 
+def create_initial_state(config: ExperimentConfig, key: RandomKey) -> GraphState:
+    """Map from experiment configuration to initialization parameters."""
+    # Map configuration to parameter dictionaries
+    adversarial_params = {
+        "proportion": config.adversarial_proportion,
+        "introduction": config.adversarial_introduction
+    }
+    
+    crop_params = {
+        "volatility_params": {
+            config.yield_volatility: {"alpha": (5.0, 7.0), "beta": (3.0, 5.0)},
+            "other_volatility": {"alpha": (2.0, 5.0), "beta": (1.0, 3.0)}
+        }
+    }
+    
+    # Add other parameter mappings as needed
+    
+    return initialize_democratic_graph_state(
+        num_agents=config.num_agents,
+        crops=config.crops,
+        initial_resources=config.initial_resources,
+        resource_min_threshold=config.resource_min_threshold,
+        key=key,
+        adversarial_params=adversarial_params,
+        crop_params=crop_params
+    )
 
 def run_democratic_experiment(config: ExperimentConfig) -> Dict[str, Any]:
     """Run a complete democratic mechanism experiment."""

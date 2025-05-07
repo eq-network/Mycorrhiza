@@ -6,6 +6,7 @@ They're used to validate transformations and ensure mathematical properties.
 """
 from typing import TypeVar, Generic, Protocol, Set, Callable, Dict, Any
 from abc import ABC, abstractmethod
+from .category import Transform
 import jax.numpy as jnp
 
 from .graph import GraphState
@@ -105,3 +106,23 @@ class NegatedProperty(Property):
     def check(self, state: GraphState) -> bool:
         """A negated property holds if the original property does not hold."""
         return not self.property.check(state)
+    
+class PropertyCategory:
+    """Represents a subcategory of transformations preserving specific properties."""
+    
+    def __init__(self, name: str, properties: Set[Property]):
+        self.name = name
+        self.properties = properties
+    
+    def contains(self, transform: Transform) -> bool:
+        """Check if a transformation belongs to this category."""
+        if not hasattr(transform, 'preserves'):
+            return False
+        return all(p in transform.preserves for p in self.properties)
+    
+    def __call__(self, transform: Transform) -> Transform:
+        """Decorator that marks a transformation as belonging to this category."""
+        if not hasattr(transform, 'preserves'):
+            transform.preserves = set()
+        transform.preserves = transform.preserves.union(self.properties)
+        return transform

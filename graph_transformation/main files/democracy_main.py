@@ -175,40 +175,42 @@ def _construct_mechanism_pipeline(config: ExperimentConfig) -> Transform:
 
 
 def _initialize_graph_state(config: ExperimentConfig, key: RandomKey) -> GraphState:
-    """
-    Initializes the graph state based on experiment configuration.
+    """Initialize graph state from configuration parameters."""
+    # Split key for various randomization needs
+    key, subkey1, subkey2 = jr.split(key, 3)
     
-    Creates the initial population with specified proportion of adversarial agents,
-    initializes resource levels, crop distributions, and required adjacency matrices.
+    # Initialize node attributes (agents)
+    node_attrs = {
+        "expertise": _initialize_expertise(config.num_agents, subkey1),
+        "is_adversarial": _initialize_adversarial_flags(
+            config.num_agents, 
+            config.adversarial_proportion, 
+            config.adversarial_introduction,
+            subkey2
+        ),
+        "voting_power": jnp.ones(config.num_agents),  # Initial equal voting power
+        "belief": _initialize_beliefs(config.num_agents, config.crops, subkey1),
+    }
     
-    Args:
-        config: Experiment configuration
-        key: Random key for initialization
-        
-    Returns:
-        Initial graph state for simulation
-    """
-    # This function would call the appropriate initialization services
-    # For now, we assume it exists and return the expected interface
+    # Initialize adjacency matrices
+    adj_matrices = {
+        "communication": _initialize_communication_network(config.num_agents, subkey1),
+        "delegation": jnp.zeros((config.num_agents, config.num_agents)),  # Empty delegation initially
+    }
     
-    # The real implementation would:
-    # 1. Create appropriate node attributes for agents
-    # 2. Initialize adjacency matrices for communication/delegation
-    # 3. Set up global attributes for resources and environment
+    # Initialize global attributes
+    global_attrs = {
+        "resource_distributions": _initialize_crop_distributions(
+            config.crops, 
+            config.yield_volatility,
+            subkey2
+        ),
+        "total_resources": config.initial_resources,
+        "resource_min_threshold": config.resource_min_threshold,
+        "round": 0,
+    }
     
-    # Number of adversarial agents
-    num_adversarial = int(config.num_agents * config.adversarial_proportion)
-    
-    # We'll assume this function exists and provides the initialization
-    return initialize_democratic_simulation_state(
-        num_agents=config.num_agents,
-        num_adversarial=num_adversarial,
-        crops=config.crops,
-        initial_resources=config.initial_resources,
-        adversarial_introduction=config.adversarial_introduction,
-        yield_volatility=config.yield_volatility,
-        random_key=key
-    )
+    return GraphState(node_attrs, adj_matrices, global_attrs)
 
 
 def _execute_simulation(

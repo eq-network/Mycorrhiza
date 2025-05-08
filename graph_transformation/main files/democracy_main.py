@@ -1,12 +1,26 @@
+"""
+Command-line interface for running democratic mechanism experiments.
+
+This module provides the primary entry point for running democratic mechanism
+experiments with the graph transformation framework. It orchestrates the complete
+experiment lifecycle, from configuration to results analysis.
+"""
 from typing import Dict, List, Optional, Union, Callable, Any, Tuple
 from dataclasses import dataclass
 import jax
 import jax.numpy as jnp
 import jax.random as jr
+import argparse
+import json
+import os
+from datetime import datetime
 
 from core.graph import GraphState
 from core.category import sequential, compose, attach_properties, jit_transform
 from core.property import ConservesSum, Property
+from domains.democracy.initialization import initialize_democratic_graph_state
+from execution.simulation import run_simulation
+from analysis.democracy import compute_metrics, aggregate_results
 
 # Type aliases for clean type signatures
 Transform = Callable[[GraphState], GraphState]
@@ -42,18 +56,58 @@ class ExperimentConfig:
     track_information_metrics: bool = True
 
 
-def run_democratic_experiment(
-    config: ExperimentConfig
-) -> Dict[str, Any]:
+def create_initial_state(config: ExperimentConfig, key: RandomKey) -> GraphState:
     """
-    Orchestrates a complete democratic mechanism experiment according to specified configuration.
+    Map from experiment configuration to initialization parameters.
     
-    This function serves as the compilation layer between the mathematical process definition 
-    (transformations) and the computational execution (simulation runs). It maintains strict 
-    separation between configuration, process composition, execution strategy, and result collection.
+    This function bridges the ExperimentConfig structure to the domain-specific
+    initialization functions in the democracy module.
     
     Args:
-        config: Immutable experiment configuration dataclass
+        config: Experiment configuration
+        key: Random key for initialization
+        
+    Returns:
+        Initialized graph state
+    """
+    # Map configuration to parameter dictionaries
+    adversarial_params = {
+        "proportion": config.adversarial_proportion,
+        "introduction": config.adversarial_introduction
+    }
+    
+    crop_params = {
+        "volatility_params": {
+            config.yield_volatility: {"alpha": (5.0, 7.0), "beta": (3.0, 5.0)},
+            "other_volatility": {"alpha": (2.0, 5.0), "beta": (1.0, 3.0)}
+        }
+    }
+    
+    # Initialize graph state using domain-specific initialization
+    return initialize_democratic_graph_state(
+        num_agents=config.num_agents,
+        crops=config.crops,
+        initial_resources=config.initial_resources,
+        resource_min_threshold=config.resource_min_threshold,
+        adversarial_proportion=config.adversarial_proportion,
+        adversarial_introduction=config.adversarial_introduction,
+        yield_volatility=config.yield_volatility,
+        key=key
+    )
+
+
+def run_democratic_experiment(config: ExperimentConfig) -> Dict[str, Any]:
+    """
+    Run a complete democratic mechanism experiment.
+    
+    This function orchestrates the full experiment pipeline:
+    1. Mechanism construction
+    2. Initial state creation
+    3. Simulation execution
+    4. Results analysis
+    
+    Args:
+        config: Experiment configuration
         
     Returns:
         Dict containing structured experiment results and analysis metrics
@@ -61,8 +115,11 @@ def run_democratic_experiment(
     # Initialize master random key from seed
     master_key = jr.PRNGKey(config.random_seed)
     
+    # Import mechanism construction function
+    from graph_transformation.transformations.bottom_up.mechanisms import construct_mechanism
+    
     # Prepare transformation pipeline based on mechanism type
-    transform_pipeline = _construct_mechanism_pipeline(config)
+    transform_pipeline = construct_mechanism(config.mechanism_type)
     
     # Apply optimization if requested
     if config.jit_compile:
@@ -76,10 +133,10 @@ def run_democratic_experiment(
         master_key, trial_key = jr.split(master_key)
         
         # Initialize graph state for this trial
-        initial_state = _initialize_graph_state(config, trial_key)
+        initial_state = create_initial_state(config, trial_key)
         
         # Execute simulation for this trial
-        final_state, state_history = _execute_simulation(
+        final_state, state_history = run_simulation(
             initial_state=initial_state,
             transform=transform_pipeline,
             num_rounds=config.num_rounds,
@@ -87,16 +144,16 @@ def run_democratic_experiment(
         )
         
         # Compute trial metrics
-        trial_metrics = _compute_trial_metrics(
+        metrics = compute_metrics(
             config=config,
             final_state=final_state,
             state_history=state_history
         )
         
-        trial_results.append(trial_metrics)
+        trial_results.append(metrics)
     
     # Aggregate results across trials
-    aggregated_results = _aggregate_trial_results(trial_results)
+    aggregated_results = aggregate_results(trial_results)
     
     # Return structured results with appropriate metadata
     return {
@@ -106,243 +163,101 @@ def run_democratic_experiment(
     }
 
 
-def _construct_mechanism_pipeline(config: ExperimentConfig) -> Transform:
+def run_comparative_analysis(base_config: ExperimentConfig, mechanisms: List[str]) -> Dict[str, Any]:
     """
-    Constructs the appropriate transformation pipeline based on mechanism type.
-    
-    This function composes the elementary transformations into mechanism-specific
-    pipelines that implement PDD, PRD, or PLD according to the specification.
+    Run comparative analysis across multiple democratic mechanisms.
     
     Args:
-        config: Experiment configuration
+        base_config: Base experiment configuration
+        mechanisms: List of mechanism types to compare
         
     Returns:
-        Composed transformation implementing the specified democratic mechanism
+        Dict containing comparative analysis results
     """
-    # Common transformations across all mechanisms
-    information_sharing = _create_information_sharing_transform(config)
-    prediction_market = _create_prediction_market_transform(config)
-    resource_application = _create_resource_application_transform(config)
+    # Run experiments for each mechanism
+    mechanism_results = {}
     
-    # Mechanism-specific transformations and composition
-    if config.mechanism_type == "PDD":
-        # Predictive Direct Democracy: all agents vote directly
-        direct_voting = _create_direct_voting_transform(config)
-        
-        return sequential(
-            information_sharing,
-            prediction_market,
-            direct_voting,
-            resource_application
-        )
-        
-    elif config.mechanism_type == "PRD":
-        # Predictive Representative Democracy: fixed representatives vote
-        representative_selection = _create_representative_selection_transform(config)
-        representative_voting = _create_representative_voting_transform(config)
-        
-        return sequential(
-            information_sharing,
-            prediction_market,
-            representative_selection,
-            representative_voting,
-            resource_application
-        )
-        
-    elif config.mechanism_type == "PLD":
-        # Predictive Liquid Democracy: delegates vote with weighted power
-        delegation = _create_delegation_transform(config)
-        voting_power_calculation = _create_voting_power_calculation_transform(config)
-        liquid_voting = _create_liquid_voting_transform(config)
-        
-        # Property: voting power is conserved through the delegation process
-        conserves_voting_power = ConservesSum("voting_power")
-        voting_power_calculation = attach_properties(
-            voting_power_calculation, {conserves_voting_power}
-        )
-        
-        return sequential(
-            information_sharing,
-            delegation,
-            voting_power_calculation,
-            prediction_market,
-            liquid_voting,
-            resource_application
-        )
-    
-    else:
-        raise ValueError(f"Unknown mechanism type: {config.mechanism_type}")
-
-
-def _initialize_graph_state(config: ExperimentConfig, key: RandomKey) -> GraphState:
-    """Initialize graph state from configuration parameters."""
-    # Split key for various randomization needs
-    key, subkey1, subkey2 = jr.split(key, 3)
-    
-    # Initialize node attributes (agents)
-    node_attrs = {
-        "expertise": _initialize_expertise(config.num_agents, subkey1),
-        "is_adversarial": _initialize_adversarial_flags(
-            config.num_agents, 
-            config.adversarial_proportion, 
-            config.adversarial_introduction,
-            subkey2
-        ),
-        "voting_power": jnp.ones(config.num_agents),  # Initial equal voting power
-        "belief": _initialize_beliefs(config.num_agents, config.crops, subkey1),
-    }
-    
-    # Initialize adjacency matrices
-    adj_matrices = {
-        "communication": _initialize_communication_network(config.num_agents, subkey1),
-        "delegation": jnp.zeros((config.num_agents, config.num_agents)),  # Empty delegation initially
-    }
-    
-    # Initialize global attributes
-    global_attrs = {
-        "resource_distributions": _initialize_crop_distributions(
-            config.crops, 
-            config.yield_volatility,
-            subkey2
-        ),
-        "total_resources": config.initial_resources,
-        "resource_min_threshold": config.resource_min_threshold,
-        "round": 0,
-    }
-    
-    return GraphState(node_attrs, adj_matrices, global_attrs)
-
-
-def _execute_simulation(
-    initial_state: GraphState,
-    transform: Transform,
-    num_rounds: int,
-    key: RandomKey
-) -> Tuple[GraphState, List[GraphState]]:
-    """
-    Executes the simulation for the specified number of rounds.
-    
-    Applies the transformation pipeline repeatedly, preserving history
-    and checking termination conditions.
-    
-    Args:
-        initial_state: Starting graph state
-        transform: Composed transformation to apply each round
-        num_rounds: Maximum number of rounds
-        key: Random key for stochastic processes
-        
-    Returns:
-        Tuple of (final_state, state_history)
-    """
-    # Initialize state history with initial state
-    state_history = [initial_state]
-    current_state = initial_state
-    
-    # Split random key for each round
-    subkeys = jr.split(key, num_rounds + 1)
-    
-    # Execute rounds
-    for round_num in range(1, num_rounds + 1):
-        # Update round counter in state
-        current_state = current_state.update_global_attr("round", round_num)
-        
-        # Apply transformation with appropriate randomness
-        current_state = transform(current_state)
-        
-        # Append to history
-        state_history.append(current_state)
-        
-        # Check termination condition (resources below threshold)
-        if current_state.global_attrs.get("total_resources", 0) < current_state.global_attrs.get("resource_min_threshold", 0):
-            break
-    
-    return current_state, state_history
-
-
-def _compute_trial_metrics(
-    config: ExperimentConfig,
-    final_state: GraphState,
-    state_history: List[GraphState]
-) -> Dict[str, Any]:
-    """
-    Computes metrics for a single trial based on configuration flags.
-    
-    Args:
-        config: Experiment configuration 
-        final_state: Final state of the simulation
-        state_history: Complete history of states
-        
-    Returns:
-        Dict of computed metrics
-    """
-    metrics = {
-        "survival_rounds": len(state_history) - 1,
-        "survived": final_state.global_attrs.get("total_resources", 0) >= 
-                   final_state.global_attrs.get("resource_min_threshold", 0),
-        "final_resources": final_state.global_attrs.get("total_resources", 0),
-    }
-    
-    # Extract mechanism-specific metrics
-    if config.mechanism_type == "PLD" and config.track_delegation_metrics:
-        metrics.update(_compute_delegation_metrics(final_state, state_history))
-    
-    # Add resource metrics if requested
-    if config.track_resource_metrics:
-        metrics.update(_compute_resource_metrics(final_state, state_history))
-        
-    # Add information metrics if requested
-    if config.track_information_metrics:
-        metrics.update(_compute_information_metrics(final_state, state_history))
-    
-    return metrics
-
-
-def _aggregate_trial_results(trial_results: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """
-    Aggregates results across all trials.
-    
-    Computes statistics like mean, median, min, max, and standard deviation
-    for numerical metrics across all trials.
-    
-    Args:
-        trial_results: List of metrics from each trial
-        
-    Returns:
-        Dict of aggregated metrics
-    """
-    # This would compute statistics across trials
-    # We'd aggregate key metrics like survival rate, average resources, etc.
-    return aggregate_experiment_results(trial_results)
-
-
-# Example usage of the orchestration function
-if __name__ == "__main__":
-    # Define experiment configuration
-    experiment_config = ExperimentConfig(
-        mechanism_type="PLD",
-        num_agents=100,
-        adversarial_proportion=0.3,
-        adversarial_introduction="gradual",
-        num_rounds=30,
-        initial_resources=1000,
-        resource_min_threshold=500,
-        crops=["Wheat", "Corn", "Rice", "Potatoes", "Soybeans"],
-        yield_volatility="variable",
-        random_seed=42,
-        num_trials=10,
-        jit_compile=True,
-        track_delegation_metrics=True
-    )
-    
-    # Run experiment
-    results = run_democratic_experiment(experiment_config)
-    
-    # Comparative analysis across mechanisms
-    mechanism_comparison = []
-    for mechanism in ["PDD", "PRD", "PLD"]:
-        # Create configuration variant for this mechanism
+    for mechanism in mechanisms:
+        # Create mechanism-specific configuration
         mechanism_config = ExperimentConfig(
             mechanism_type=mechanism,
+            num_agents=base_config.num_agents,
+            adversarial_proportion=base_config.adversarial_proportion,
+            adversarial_introduction=base_config.adversarial_introduction,
+            num_rounds=base_config.num_rounds,
+            initial_resources=base_config.initial_resources,
+            resource_min_threshold=base_config.resource_min_threshold,
+            crops=base_config.crops,
+            yield_volatility=base_config.yield_volatility,
+            random_seed=base_config.random_seed,
+            num_trials=base_config.num_trials,
+            jit_compile=base_config.jit_compile
+        )
+        
+        # Run experiment
+        results = run_democratic_experiment(mechanism_config)
+        mechanism_results[mechanism] = results
+    
+    # Generate comparative analysis
+    from analysis.democracy.visualization import generate_mechanism_comparison_report
+    comparison_report = generate_mechanism_comparison_report(mechanism_results)
+    
+    return {
+        "mechanism_results": mechanism_results,
+        "comparison_report": comparison_report
+    }
+
+
+def load_config_from_file(config_path: str) -> ExperimentConfig:
+    """Load experiment configuration from a JSON file."""
+    with open(config_path, 'r') as f:
+        config_dict = json.load(f)
+    
+    return ExperimentConfig(**config_dict)
+
+
+def save_results(results: Dict[str, Any], output_dir: str, experiment_name: str = None):
+    """Save experiment results to disk."""
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    # Generate experiment name if not provided
+    if experiment_name is None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        experiment_name = f"experiment_{timestamp}"
+    
+    # Save results as JSON
+    results_path = os.path.join(output_dir, f"{experiment_name}_results.json")
+    with open(results_path, 'w') as f:
+        json.dump(results, f, indent=2)
+    
+    print(f"Results saved to {results_path}")
+
+
+def main():
+    """Command-line entry point for running experiments."""
+    parser = argparse.ArgumentParser(description="Run democratic mechanism experiments")
+    
+    # Configuration options
+    parser.add_argument("--config", type=str, help="Path to experiment configuration file")
+    parser.add_argument("--mechanism", type=str, choices=["PDD", "PRD", "PLD"], 
+                        help="Democratic mechanism to simulate")
+    parser.add_argument("--comparative", action="store_true", 
+                        help="Run comparative analysis across all mechanisms")
+    parser.add_argument("--output-dir", type=str, default="results", 
+                        help="Directory to save results")
+    parser.add_argument("--experiment-name", type=str, 
+                        help="Name for the experiment (used in output filenames)")
+    
+    args = parser.parse_args()
+    
+    # Load configuration
+    if args.config:
+        config = load_config_from_file(args.config)
+    else:
+        # Default configuration
+        config = ExperimentConfig(
+            mechanism_type=args.mechanism or "PLD",
             num_agents=100,
             adversarial_proportion=0.3,
             adversarial_introduction="gradual",
@@ -352,12 +267,22 @@ if __name__ == "__main__":
             crops=["Wheat", "Corn", "Rice", "Potatoes", "Soybeans"],
             yield_volatility="variable",
             random_seed=42,
-            num_trials=10
+            num_trials=10,
+            jit_compile=True,
+            track_delegation_metrics=True,
+            track_resource_metrics=True,
+            track_information_metrics=True
         )
-        
-        # Run and store results
-        mechanism_results = run_democratic_experiment(mechanism_config)
-        mechanism_comparison.append(mechanism_results)
     
-    # Generate visualizations and comparative analysis
-    generate_mechanism_comparison_report(mechanism_comparison)
+    # Run experiment
+    if args.comparative:
+        results = run_comparative_analysis(config, ["PDD", "PRD", "PLD"])
+    else:
+        results = run_democratic_experiment(config)
+    
+    # Save results
+    save_results(results, args.output_dir, args.experiment_name)
+
+
+if __name__ == "__main__":
+    main()

@@ -2,6 +2,9 @@
 
 A principled approach to multi-agent simulation using category theory, functional programming, and JAX acceleration.
 
+You can see the diagrams here: https://excalidraw.com/#room=f4116b0ba2d8d5095d85,zSDwGDuqMZI4uxu4CTQuHg
+
+
 ## Core Principles
 
 GraphTransform is built on foundational mathematical and computational principles that provide a rigorous basis for modeling complex multi-agent systems.

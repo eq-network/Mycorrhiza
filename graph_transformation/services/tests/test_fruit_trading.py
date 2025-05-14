@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import jax.numpy as jnp
 
-from core.graph_state import GraphState
+from graph_transformation.core.graph import GraphState
 from models.fruit_trading import (
     FruitTradingConfig, generate_preferences,
     generate_initial_endowment, calculate_utility

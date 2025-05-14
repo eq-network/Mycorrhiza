@@ -40,6 +40,15 @@ def compose(f: Transform, g: Transform) -> Transform:
     
     return composed
 
+def identity() -> Transform:
+    """Identity transformation: fundamental to the category of graph transformations."""
+    def id_transform(state: GraphState) -> GraphState:
+        return state
+        
+    # The identity preserves ALL properties by definition
+    id_transform.preserves = "ALL_PROPERTIES"  # Special marker
+    return id_transform
+
 
 def sequential(*transforms: Transform) -> Transform:
     """
@@ -53,7 +62,7 @@ def sequential(*transforms: Transform) -> Transform:
     """
     if not transforms:
         # Return identity transformation
-        return lambda state: state
+        return identity
     
     if len(transforms) == 1:
         return transforms[0]

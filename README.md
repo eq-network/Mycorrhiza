@@ -158,6 +158,7 @@ load, read one after `examples/`.
 | [CLAUDE.md](CLAUDE.md) | Working conventions (for humans and coding agents) |
 | [docs/Manifesto.md](docs/Manifesto.md) | The "why": process-centric thinking + category theory framing |
 | [docs/changelogs/](docs/changelogs/) | Dated engineering notes + typeset roll-ups |
+| [Excalidraw diagrams](https://excalidraw.com/#room=f4116b0ba2d8d5095d85,zSDwGDuqMZI4uxu4CTQuHg) | Live visual architecture overview (external whiteboard) |
 
 ## Contributing
 

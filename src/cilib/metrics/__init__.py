@@ -14,6 +14,7 @@ from .export import write_trajectory_csv, write_summary_csv
 from .families.economic import ECONOMIC_METRICS
 from .families.governance import GOVERNANCE_METRICS
 from .families.graph import GRAPH_METRICS
+from .families.concentration import CONCENTRATION_METRICS
 
 __all__ = [
     'make_metrics_transform',
@@ -22,4 +23,5 @@ __all__ = [
     'ECONOMIC_METRICS',
     'GOVERNANCE_METRICS',
     'GRAPH_METRICS',
+    'CONCENTRATION_METRICS',
 ]

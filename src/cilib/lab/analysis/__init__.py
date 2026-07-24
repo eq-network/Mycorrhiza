@@ -12,6 +12,7 @@ Currently:
   and the synthetic reference network (validation fixture).
 """
 from . import causal_emergence  # noqa: F401  (submodule, used as cilib.lab.analysis.causal_emergence)
+from . import influence  # noqa: F401  (submodule, used as cilib.lab.analysis.influence)
 from .effective_information import (
     stationary,
     partition_to_S,

@@ -44,13 +44,17 @@ siblings (so the **swap test** holds: another family member drops into the same
 pipeline slot). Families: `market`, `network`, `democracy`.
 
 ```python
-# mechanisms/democracy.py  (family: democracy, writes: harvest_target, penalty)
+# mechanisms/democracy.py  (family: democracy, writes: policy_target, penalty)
 def make_direct_democracy(cfg):
-    @transform(reads=["vote_value"], writes=["harvest_target", "penalty"])
-    def pdd(state): ...        # median vote -> quota + penalty
+    @transform(reads=["vote"], writes=["policy_target", "penalty"])
+    def pdd(state): ...        # median vote -> policy target + penalty
     return pdd
 # mechanisms/__init__.py  ->  REGISTRY["direct_democracy"] = make_direct_democracy
 ```
+
+Contract fields are deliberately generic (`vote`, `policy_target`) so the same mechanism
+drops into any environment that exposes them — see `mechanisms/democracy.py` for the
+worked pair (`quota_vote`, `graduated_sanction`).
 
 ## Add an environment → `src/cilib/environments/`
 

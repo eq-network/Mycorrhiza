@@ -9,10 +9,18 @@ market is `elicit -> match -> clear -> settle`). Pick one by name from `REGISTRY
 execution order from effects. Entries within a *family* keep **disjoint write sets**
 so `parallel(market, network)` is always valid.
 
-**Families (Plan 2):** `market` · `network` · `democracy`.
-**Entries today:** `market`. The variants — double-auction, sealed-bid, trust-weighted
-/ gossip networks, direct / liquid / representative democracy — are the first
-open-source follow-ups, each a new file + one `REGISTRY` line.
+**Families:** `market` · `network` · `democracy` · `fiscal`.
+**Entries today:** `market`; `quota_vote` + `graduated_sanction` (`democracy` —
+quantile vote → policy target; over-quota penalty + confiscation); `ai_revenue_tax` +
+`ownership_cap` (`fiscal` — tax-and-redistribute capital income; cap any actor's share
+of AI compute). The variants — double-auction, sealed-bid, trust-weighted / gossip
+networks, liquid / representative democracy — are the first open-source follow-ups,
+each a new file + one `REGISTRY` line.
+
+**Timing belongs to the schedule, not the mechanism:** entries are pure rules; wrap
+with `core.schedule.scheduled(mech, cadence, phase_offset, onset)` to control when they
+fire (`onset` = regime-shift dial). Benchmark conditions are (mechanism, config,
+schedule) triples.
 
 **Add one:**
 1. Compose `transformations` into a `make_<mech>(cfg) -> Transform` factory.

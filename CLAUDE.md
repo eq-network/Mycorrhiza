@@ -4,6 +4,14 @@ Collective Intelligence Library ("CI Lib"): a JAX-native framework for composabl
 multi-agent simulation. Read [ARCHITECTURE.md](ARCHITECTURE.md) first — it's the
 pattern map. This file is the working contract.
 
+**Alpha direction:** the five benchmark scenarios and their engine mapping live in
+[docs/alpha-context.md](docs/alpha-context.md) (why/what) and
+[docs/alpha-plan.md](docs/alpha-plan.md) (phasing, definitions of done); the
+classical-ABM program frame (validation ladder, mechanisms-attach-via-scheduler,
+influence-now vs influence-from-birth) is [docs/abm-suite-design.md](docs/abm-suite-design.md);
+the environment boundary contract is [docs/game-boundary-design.md](docs/game-boundary-design.md)
+(frozen). Public counterpart: the unlisted page at eq-network.org/lab.
+
 ## Import root
 
 The library installs as `cilib` (distribution: `collective-intelligence-library`).
@@ -56,7 +64,7 @@ future study; a *paradigm* wires many pieces together to make one paper's argume
 
 ## Verifying a change
 
-- Behavior-preserving refactor → `python -m pytest -q` must stay green (currently 82).
+- Behavior-preserving refactor → `python -m pytest -q` must stay green (currently 146).
 - A change to a paradigm's composition → assert the new pipeline is numerically
   identical to the old one for a fixed seed before deleting the old path.
 - A new catalog entry → a behavioral test asserting the *mechanism* (direction /

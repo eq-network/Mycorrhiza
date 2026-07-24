@@ -12,12 +12,17 @@ and ``list_envs`` are thin conveniences over it.
 from __future__ import annotations
 
 from .spec import EnvSpec, MetricFn
+from .game import GameSpec, close, validate_reads
 from . import commons_metrics            # noqa: F401  (shared GovSim metric helpers)
 from .commons_harvest import build_commons_harvest
+from .governed_commons import build_governed_commons
+from .compute_economy import build_compute_economy
 
 # name -> builder ((**cfg) -> EnvSpec).
 REGISTRY = {
     "commons_harvest": build_commons_harvest,
+    "governed_commons": build_governed_commons,
+    "compute_economy": build_compute_economy,
 }
 
 
@@ -33,4 +38,5 @@ def list_envs():
     return sorted(REGISTRY)
 
 
-__all__ = ["EnvSpec", "MetricFn", "commons_metrics", "REGISTRY", "make_env", "list_envs"]
+__all__ = ["EnvSpec", "GameSpec", "close", "validate_reads", "MetricFn",
+           "commons_metrics", "REGISTRY", "make_env", "list_envs"]

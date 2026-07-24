@@ -10,12 +10,12 @@ experimentally controllable. The schedule itself is a first-class
 experimental variable.
 """
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 import jax
 import jax.numpy as jnp
 
 from .graph import GraphState
-from .category import Transform
+from .category import Transform, conditional
 
 
 @dataclass(frozen=True)
@@ -77,6 +77,48 @@ def make_scheduled_step(entries: List[ScheduleEntry]) -> Transform:
     scheduled_step.name = f"scheduled_step({', '.join(names)})"
 
     return scheduled_step
+
+
+def scheduled(mechanism: Transform, cadence: int = 1, phase_offset: int = 0,
+              onset: int = 0) -> Transform:
+    """Attach a schedule to ONE mechanism: fires iff ``step >= onset`` AND
+    ``(step - phase_offset) % cadence == 0``; identity otherwise (scan-safe lax.cond).
+
+    This is the composition principle of the benchmark: mechanisms are pure rules,
+    the schedule owns *when* they apply — "quota vote every 5 ticks", "taxation
+    switching on at t=100" (``onset`` is the regime-shift dial for antifragility
+    tests). Defaults are a transparent pass-through, so wrapping is opt-in.
+
+    Built on ``core.category.conditional``, which propagates ``.reads``/``.writes``
+    (adding ``step`` to reads) so ``compile_pipeline`` still orders the wrapped
+    mechanism correctly. (NOT built on ``gated``, which drops that metadata.)
+
+    Complement of ``ScheduleEntry``/``make_scheduled_step`` (whole-round composition):
+    ``scheduled`` wraps a single transform for use inside a ``compile_pipeline`` list.
+    """
+    def fires(state: GraphState):
+        step = state.global_attrs["step"]
+        return (step >= onset) & (((step - phase_offset) % cadence) == 0)
+
+    wrapped = conditional(fires, mechanism, predicate_reads=["step"])
+    wrapped.name = (f"scheduled({getattr(mechanism, 'name', '?')}, "
+                    f"cadence={cadence}, phase={phase_offset}, onset={onset})")
+    return wrapped
+
+
+@dataclass(frozen=True)
+class ScheduleSpec:
+    """Serializable schedule dial for a benchmark condition entry."""
+    cadence: int = 1
+    phase_offset: int = 0
+    onset: int = 0
+
+
+def apply_schedule(transform: Transform, spec: Optional[ScheduleSpec]) -> Transform:
+    """Wrap ``transform`` per ``spec``; ``None`` means unscheduled (fires every tick)."""
+    if spec is None:
+        return transform
+    return scheduled(transform, spec.cadence, spec.phase_offset, spec.onset)
 
 
 def describe_schedule(entries: List[ScheduleEntry], num_ticks: int = 20) -> str:

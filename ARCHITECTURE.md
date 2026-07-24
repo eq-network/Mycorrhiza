@@ -91,6 +91,11 @@ experiments/                studies    (import lab.paradigms, lab.analysis, metr
 lab/analysis/               measurement — imports NOTHING from the library (offline)
 ```
 
+One sanctioned lateral edge among the catalogs: **environments may import agents.**
+Policies are *inputs* to games (`environments/game.py`: an open `GameSpec` is closed
+with a policy via `close(game, policy)`), so an environment builder may pull its
+default policy from the agents catalog. No other cross-catalog import exists.
+
 ## Where things live
 
 ```

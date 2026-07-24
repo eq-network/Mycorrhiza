@@ -26,10 +26,13 @@ Influence instrument: collective ask-shift from t=0, outcome = per-capita harves
 
 **compute_economy** (scenario 2): `baseline` / `ai_revenue_tax` (50% on capital income,
 redistributed — switching on at t=50) / `tax_and_ownership_cap` (+ 35% cap on any
-actor's share of AI compute). Influence instrument: **one-shot work-preference shift at
-2T/3** (influence *now*, after AI capital entrenches), outcome = late log-output — its
-responsiveness is the output elasticity of human labor ("how much the economy still
-needs people").
+actor's share of AI compute). Instrument (**relabeled `labor_dependence`, 2026-07-24**):
+the static output elasticity of human labor — d logY / d logL over the 10 ticks after a
+**one-shot work-preference shift at 2T/3** (dependence *now*, after AI capital
+entrenches), realized shifts from paired same-key batches. It measures how much the
+economy still *needs* people, not whether they govern it — the substrate has no
+governance channel (`docs/model-register-design.md` §2); the Cobb-Douglas rung asserts
+the instrument recovers α exactly.
 
 Conditions are **(mechanism, config, schedule) triples**: mechanisms are pure catalog
 rules; `ScheduleSpec` owns cadence / phase / onset (`onset` is the regime-shift dial).
@@ -56,6 +59,17 @@ of the AI capital stock itself), while influence-*now* collapses undefended — 
 between historical and current influence is the gradual-disempowerment signature.**
 Descriptive indicators move with it: labor share 0.33→0.63, human income share
 0.33→0.81, income Gini 0.69→0.11 across the defense portfolio.
+
+**Update (2026-07-24)** — economy instrument redefined as a true static elasticity
+(`labor_dependence` v1: realized d logY / d logL over a 10-tick post-shift window; the
+v0 reading divided a log response by a level shift and used a 100-tick window that
+folded in capital-path feedback — both biases upward). Re-run (32 × 300): baseline
+**0.20** / tax **0.51** / tax+cap **0.54** exercised (recovery scores 0.00 / 0.38 /
+0.42). The qualitative pattern survives — dependence collapses undefended, fiscal
+defenses bend it — with magnitudes roughly 40% lower than v0's biased readings.
+Descriptive columns unchanged. These rows score *labor dependence preserved*, not
+influence — see `docs/model-register-design.md` §2 for why the distinction is the
+scenario's honest boundary.
 
 Caveats, stated as loudly as the numbers: these are toy models — calibrations chosen so
 each dynamic appears clearly (`docs/abm-suite-design.md` has the validation ladder);

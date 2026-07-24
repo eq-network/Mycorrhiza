@@ -7,12 +7,14 @@ paired same-key rollouts, never correlational scores alone:
 
 - ``governed_commons``: init-state preference shift (``collective_influence``) — do the
   households' asks govern realized harvests over the run?
-- ``compute_economy``: **mid-run one-shot intervention** (``intervention_response``,
+- ``compute_economy``: **labor dependence NOW** (``intervention_elasticity``,
   work-pref shift at 2T/3) — does the economy still respond to human labor choices
   AFTER the AI capital stock has entrenched? An init-state shift would measure
-  influence-from-birth, which stays ≈1 even in the captured economy (early labor is
+  dependence-from-birth, which stays ≈1 even in the captured economy (early labor is
   upstream of the capital stock itself); the gap between the two IS the
-  gradual-disempowerment signature.
+  gradual-disempowerment signature. Relabeled from "influence" 2026-07-24: the
+  substrate has no governance channel, so its instrument measures how much the economy
+  still *needs* people, not whether they govern it (docs/model-register-design.md §2).
 
 Adding a scenario = build the env (EXTENDING.md), then one ``ScenarioSpec`` here.
 """
@@ -26,9 +28,11 @@ import numpy as np
 
 from cilib.core.schedule import ScheduleSpec, scheduled
 from cilib.environments import make_env
-from cilib.environments.counterfactual import collective_influence, intervention_response
+from cilib.environments.counterfactual import collective_influence, intervention_elasticity
 from cilib.environments.governed_commons import shift_preferences, per_capita_harvest
-from cilib.environments.compute_economy import late_log_output, make_work_pref_shift
+from cilib.environments.compute_economy import (
+    make_window_log_output, make_window_log_labor, make_work_pref_shift,
+)
 from cilib.mechanisms import (
     QuotaVoteConfig, SanctionConfig, AIRevenueTaxConfig, OwnershipCapConfig,
 )
@@ -62,18 +66,29 @@ def _commons_influence(mechanisms, spec: RunSpec) -> np.ndarray:
         perturb_fn=shift_preferences, outcome_fn=per_capita_harvest))
 
 
-def _economy_influence(mechanisms, spec: RunSpec) -> np.ndarray:
-    """(S,) influence NOW: log-output response to a one-shot work-preference shift at
-    2T/3 (≈ the output elasticity of human labor after regimes have separated)."""
-    delta, t0 = -0.3, 2 * spec.T // 3
+def _economy_labor_dependence(mechanisms, spec: RunSpec) -> np.ndarray:
+    """(S,) labor dependence NOW: the causal static output elasticity of human labor
+    after regimes have separated — d log(output) / d log(labor) over a short window
+    right after a one-shot work-preference shift at 2T/3, paired same-key batches.
+
+    v1 definition (2026-07-24), two fixes over v0: the divisor is the REALIZED
+    log-labor shift (v0 divided a log response by the intended level shift Δ — a units
+    mismatch inflating readings ~19%), and the window is the 10 ticks after the shift
+    (v0's last-third window conflated the static elasticity with the capital-path
+    feedback, +0.18 at ρ=0). The static elasticity carries the exact CES identity
+    ∂logY/∂logL = labor share, so the Cobb-Douglas rung in
+    ``compute_economy/tests/test_validation_ladder.py`` asserts the instrument
+    recovers α — the twist parameter finally has a ladder rung."""
+    delta, t0, window = -0.3, 2 * spec.T // 3, 10
     shift = scheduled(make_work_pref_shift(delta),
                       cadence=spec.T + 1, phase_offset=t0, onset=t0)
     base = make_env("compute_economy", mechanisms=mechanisms, **spec.env_overrides)
     intervened = make_env("compute_economy", mechanisms=(*mechanisms, shift),
                           **spec.env_overrides)
-    return np.asarray(intervention_response(
+    return np.asarray(intervention_elasticity(
         base, intervened, jr.PRNGKey(spec.seed), spec.n_seeds, spec.T,
-        outcome_fn=late_log_output, scale=delta))
+        outcome_fn=make_window_log_output(t0 + 1, window),
+        channel_fn=make_window_log_labor(t0 + 1, window)))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -90,6 +105,7 @@ SCENARIOS = {
         "governed_commons", COMMONS_CONDITIONS, _commons_influence, default_T=200,
         headline_metrics=("stock_pct", "compliance_rate", "influence_fidelity")),
     "compute_economy": ScenarioSpec(
-        "compute_economy", ECONOMY_CONDITIONS, _economy_influence, default_T=300,
+        "compute_economy", ECONOMY_CONDITIONS, _economy_labor_dependence,
+        default_T=300,
         headline_metrics=("labor_share", "human_income_share", "income_gini")),
 }

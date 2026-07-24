@@ -8,6 +8,26 @@ defenses never baked in but **attached via the scheduler**. This document is the
 `docs/alpha-plan.md` tracks status; `docs/game-boundary-design.md` records the
 interface the suite is built on.*
 
+**Status (2026-07-24):** two same-session updates. **(a) The Economy row is superseded
+by the economy model register** (`docs/model-register-design.md`): `compute_economy` is
+demoted to a pedagogical rung — its influence number ≈ the labor share by the CES
+identity, so it measures *labor dependence*, not influence (relabel decided,
+implementation deferred) — and the flagship economic scenario will be rebuilt as
+`task_economy`, bracketed by `io_economy` (Leontief, σ=0). **(b) A4/A3 design
+decisions:** A4 builds **before** A3 (A4 is pure composition of existing pieces; A3
+carries the documented `close_multi` interface risk, better faced with a second data
+point behind us). A4's substrate is DeGroot influence dynamics with the
+**Golub–Jackson wisdom-of-crowds theorem** as validation anchor and disempowerment
+dynamic in one object: consensus weights = eigenvector centrality, scheduled
+amplification breaks the wisdom condition, and the concentration metrics read straight
+off the weights. Hierarchy is *not* modeled explicitly — concentration emerges from
+amplification on a flat network, organisations are heterogeneous high-capacity nodes
+(the `compute_economy` mask pattern), and two-level structure arrives via the
+representative-democracy mechanism as a swappable rule. A3 is scoped as multi-strain
+SI/SIS: variants carry an origin label and a fidelity scalar decaying on transmission;
+the AI advantage is a transmission-rate edge; the epidemic-threshold rung must pass
+before persuaders ramp.
+
 ## The shape of the program
 
 Each ABM module is four things:

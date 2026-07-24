@@ -103,6 +103,10 @@ A thin layer in `experiments/` (promote later only if the lab razor passes):
   influence-NOW (one-shot mid-run counterfactual) collapses undefended
   (0.34 vs 0.79–0.83 defended) — the historical/current influence gap is
   gradual disempowerment operationalized.**
+  **Update (2026-07-24):** the mechanical deliverable stands; the interpretive claim
+  (0.34 = influence preserved) is superseded — by the CES identity the instrument
+  measures *labor dependence*, and the economic scenario is being rebuilt on a
+  three-substrate model register. See `docs/model-register-design.md`.
 - **A3 — `value_epidemic`.** Trust-network diffusion, embedded persuaders,
   ramping persuasive power; provenance/curation defenses. *Done when: AI-origin
   share trajectory + one defense comparison runs.*

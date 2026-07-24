@@ -10,7 +10,8 @@ fully-specified, runnable environment: `config`, `init_fn`, `round_fn`, `trace_f
 **Entries:** `commons_harvest` (spatial tragedy-of-the-commons, Melting-Pot idiom),
 `governed_commons` (non-spatial aggregate-stock commons with AI-delegate households —
 alpha scenario 1), `compute_economy` (CES production, scheduled AI arrivals, labor-share
-decay — alpha scenario 2). The latter two take a `mechanisms=` kwarg of
+decay — alpha scenario 2; first entry of the three-model economy register — see
+`docs/model-register-design.md` and the colocated `ASSUMPTIONS.md` card). The latter two take a `mechanisms=` kwarg of
 `cilib.mechanisms` Transforms (schedule-wrapped as needed) and also expose an OPEN
 `build_game(...) -> GameSpec` (see `game.py`: `close(game, policy)` plugs any policy in).
 Shared helpers: `networks.py` (graph generators), `counterfactual.py` (causal influence

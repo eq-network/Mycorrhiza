@@ -8,8 +8,11 @@ Pre-made, swappable decision rules. Pick one by name from `REGISTRY` (in
 no Python state may instead implement `PureAgent` — `round_fn() -> (state, t, key) -> state` —
 so it runs inside `core.scan.run_scan` and `vmap`s over seeds.
 
-**Entries:** `random`, `tit_for_tat`, `linear`. (Also present: `rl_components`,
-`profiles` — support modules, not yet cataloged.)
+**Entries:** `random`, `tit_for_tat`, `linear`, `ai_delegate` (principal→delegate acting
+with an alignment dial — the influence-metric hook), `labor_supply` (work_pref-scaled,
+mildly wage-elastic household rule — closes `compute_economy`), `spend_share`
+(spend-by-preference household rule — closes `io_economy`). (Also present:
+`rl_components`, `profiles` — support modules, not yet cataloged.)
 
 **Add one:**
 1. Write a `Policy` (or `PureAgent`) in a module here.

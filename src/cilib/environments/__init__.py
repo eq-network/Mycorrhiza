@@ -17,12 +17,14 @@ from . import commons_metrics            # noqa: F401  (shared GovSim metric hel
 from .commons_harvest import build_commons_harvest
 from .governed_commons import build_governed_commons
 from .compute_economy import build_compute_economy
+from .io_economy import build_io_economy
 
 # name -> builder ((**cfg) -> EnvSpec).
 REGISTRY = {
     "commons_harvest": build_commons_harvest,
     "governed_commons": build_governed_commons,
     "compute_economy": build_compute_economy,
+    "io_economy": build_io_economy,
 }
 
 

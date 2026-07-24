@@ -26,7 +26,14 @@ amplification on a flat network, organisations are heterogeneous high-capacity n
 representative-democracy mechanism as a swappable rule. A3 is scoped as multi-strain
 SI/SIS: variants carry an origin label and a fidelity scalar decaying on transmission;
 the AI advantage is a transmission-rate edge; the epidemic-threshold rung must pass
-before persuaders ramp.
+before persuaders ramp. **(b) superseded same day** by
+`docs/cultural-register-design.md`: A3 becomes a three-substrate cultural register
+(`value_replicator` / `value_contagion` / `value_spectral`), the DeGroot member is
+dropped as duplicative of A4, and "AI persuaders" resolves into two orthogonal dials —
+**separation** (AI homophily in the agent graph) × **persuasive advantage** (reach /
+frequency-targeting / dissonance-targeting) — whose phase diagram is the deliverable.
+Build order stays behind A4, and the generic spectral metric family (`fiedler_partition_alignment`,
+`spectral_gap_ratio`, `low_frequency_overlap`) is pulled forward as C0 because A4 needs it too.
 
 ## The shape of the program
 

@@ -44,6 +44,11 @@ strongest when its effect holds across both.
 
 The register pattern generalizes: the cultural subarea later gets its own (epidemic vs
 replicator vs DeGroot-variant substrates). This doc builds only the economy's.
+**Instantiated 2026-07-24 — `docs/cultural-register-design.md`** (members
+`value_replicator` / `value_contagion` / `value_spectral`; the DeGroot member was dropped
+as duplicative of A4). Note its honest caveat: the cultural members are *nested* — limits
+of one theory — rather than structurally independent as the economy's three are, so its
+robustness claim is correspondingly weaker and says so on every card.
 
 ## 2. The `compute_economy` verdict
 

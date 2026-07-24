@@ -10,7 +10,9 @@ pattern map. This file is the working contract.
 classical-ABM program frame (validation ladder, mechanisms-attach-via-scheduler,
 influence-now vs influence-from-birth) is [docs/abm-suite-design.md](docs/abm-suite-design.md);
 the economy model register (structural-robustness ensemble, assumptions cards, forking)
-is [docs/model-register-design.md](docs/model-register-design.md);
+is [docs/model-register-design.md](docs/model-register-design.md), with the cultural
+counterpart (separation × persuasion axes, spectral metrics) in
+[docs/cultural-register-design.md](docs/cultural-register-design.md);
 the environment boundary contract is [docs/game-boundary-design.md](docs/game-boundary-design.md)
 (frozen). Public counterpart: the unlisted page at eq-network.org/lab.
 

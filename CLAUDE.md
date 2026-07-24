@@ -66,7 +66,7 @@ future study; a *paradigm* wires many pieces together to make one paper's argume
 
 ## Verifying a change
 
-- Behavior-preserving refactor → `python -m pytest -q` must stay green (currently 146).
+- Behavior-preserving refactor → `python -m pytest -q` must stay green (currently 160).
 - A change to a paradigm's composition → assert the new pipeline is numerically
   identical to the old one for a fixed seed before deleting the old path.
 - A new catalog entry → a behavioral test asserting the *mechanism* (direction /

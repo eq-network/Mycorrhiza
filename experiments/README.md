@@ -14,6 +14,7 @@ consumers of it. Run them from the repo root with `python -m experiments.<name>.
 | `basin_stability/` | PDD / PRD / PLD under adversarial pressure on a resource game |
 | `governed_harvest/` | earlier harvest-extraction prototype |
 | `fishing_commons/` | state factory + type-contract reference |
+| `assumption_audits/` | one-shot receipt probes behind the lab site's "we checked" claims (floors, defense grids, cadence scan) — deliberately not the template shape |
 
 See [EXTENDING.md](../EXTENDING.md) for the recipe and [ARCHITECTURE.md](../ARCHITECTURE.md) for
 how experiments sit above the catalogs and paradigms.

@@ -15,7 +15,8 @@ from .democracy import (
     QuotaVoteConfig, SanctionConfig, make_quota_vote, make_graduated_sanction,
 )
 from .fiscal import (
-    AIRevenueTaxConfig, OwnershipCapConfig, make_ai_revenue_tax, make_ownership_cap,
+    AIRevenueTaxConfig, EnforcedAITaxConfig, OwnershipCapConfig,
+    make_ai_revenue_tax, make_enforced_ai_tax, make_ownership_cap,
 )
 from .political import (
     SortitionConfig, InfluenceCapConfig, make_sortition, make_influence_cap,
@@ -27,6 +28,7 @@ REGISTRY = {
     "quota_vote": make_quota_vote,
     "graduated_sanction": make_graduated_sanction,
     "ai_revenue_tax": make_ai_revenue_tax,
+    "enforced_ai_tax": make_enforced_ai_tax,
     "ownership_cap": make_ownership_cap,
     "sortition": make_sortition,
     "influence_cap": make_influence_cap,
@@ -36,6 +38,7 @@ __all__ = [
     "create_market_transform",
     "QuotaVoteConfig", "SanctionConfig", "make_quota_vote", "make_graduated_sanction",
     "AIRevenueTaxConfig", "OwnershipCapConfig", "make_ai_revenue_tax", "make_ownership_cap",
+    "EnforcedAITaxConfig", "make_enforced_ai_tax",
     "SortitionConfig", "InfluenceCapConfig", "make_sortition", "make_influence_cap",
     "REGISTRY",
 ]

@@ -53,6 +53,35 @@ def make_ai_revenue_tax(cfg: AIRevenueTaxConfig):
 
 
 @dataclasses.dataclass(frozen=True)
+class EnforcedAITaxConfig:
+    tax_rate: float = 0.5    # statutory rate; effective rate = tax_rate x enforcement
+
+
+def make_enforced_ai_tax(cfg: EnforcedAITaxConfig):
+    """``ai_revenue_tax`` whose EFFECTIVE rate is scaled by the environment's
+    ``enforcement`` global (in [0, 1]) — the rule-on-paper vs rule-in-practice
+    distinction. In an environment holding ``enforcement`` at 1 this is exactly
+    the flat tax; in coupled_society, ``politics_rewrites_market_rules`` erodes
+    it as human influence falls (Gradual Disempowerment §5's shifted burdens).
+    ``validate_reads`` rejects composition into any environment that has no
+    ``enforcement`` field — by design, at build time."""
+
+    @transform(reads=["capital_income", "active", "last_reward", "enforcement"],
+               writes=["capital_income", "last_reward"])
+    def enforced_ai_tax(state: GraphState) -> GraphState:
+        is_household = (state.node_types == 0).astype(jnp.float32)
+        recipients = is_household * state.node_attrs["active"]
+        rate = cfg.tax_rate * state.global_attrs["enforcement"]
+        tax = rate * state.node_attrs["capital_income"]
+        payout = jnp.sum(tax) / (jnp.sum(recipients) + 1e-8)
+        state = state.update_node_attrs(
+            "capital_income", state.node_attrs["capital_income"] - tax)
+        return state.update_node_attrs(
+            "last_reward", state.node_attrs["last_reward"] - tax + recipients * payout)
+    return enforced_ai_tax
+
+
+@dataclasses.dataclass(frozen=True)
 class OwnershipCapConfig:
     cap_share: float = 0.35  # max fraction of aggregate active AI capital per actor
 

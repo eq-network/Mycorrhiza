@@ -21,6 +21,7 @@ from .io_economy import build_io_economy
 from .task_economy import build_task_economy
 from .value_contagion import build_value_contagion
 from .influence_exchange import build_influence_exchange
+from .coupled_society import build_coupled_society
 
 # name -> builder ((**cfg) -> EnvSpec).
 REGISTRY = {
@@ -31,6 +32,7 @@ REGISTRY = {
     "task_economy": build_task_economy,
     "value_contagion": build_value_contagion,
     "influence_exchange": build_influence_exchange,
+    "coupled_society": build_coupled_society,
 }
 
 

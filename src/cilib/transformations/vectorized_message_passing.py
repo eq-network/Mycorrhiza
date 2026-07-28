@@ -20,10 +20,18 @@ trailing attribute shape: a potential ``h`` of shape ``(N, d)``, a precision
 Memory is the self-loop: if ``W`` has a positive diagonal, each node mixes in its
 own previous value, so an isolated node (only its self-edge) simply carries its
 belief forward.
+
+``W`` may be a ``BCOO`` (see ``environments/networks.to_sparse``), in which case
+aggregation runs at edge cost instead of O(N²). **Sparse support is rank-1 only**
+for now: ``einsum`` has no BCOO path for arbitrary trailing shapes, so a sparse
+``W`` with a ``(N, d)`` or ``(N, d, d)`` attribute raises rather than silently
+densifying. Higher-rank sparse fusion — the ``Pi`` precision-matrix case — is the
+follow-on, and wants ``sparse.bcoo_dot_general`` rather than this dispatch.
 """
 from typing import List
 
 import jax.numpy as jnp
+from jax.experimental import sparse
 
 from cilib.core.graph import GraphState
 from cilib.core.category import Transform
@@ -72,13 +80,30 @@ def weighted_aggregate(
         W = state.adj_matrices.get(connection_type)
         if W is None:
             return state
-        if normalize_rows:
+
+        is_sparse = isinstance(W, sparse.BCOO)
+        if normalize_rows and not is_sparse:
             W = row_normalize(W)
+        elif normalize_rows:
+            # Scale the RESULT, not W: dividing a BCOO by a dense column is
+            # awkward, and for rank-1 attrs (W @ x)/s == (W/s) @ x. Zero rows
+            # divide by 1, matching row_normalize's no-NaN guarantee.
+            sums = W.sum(axis=1).todense()
+            scale = 1.0 / jnp.where(sums > 0, sums, 1.0)
 
         new_node_attrs = dict(state.node_attrs)
         for name in attr_names:
             attr = state.node_attrs[name]
-            new_node_attrs[name] = jnp.einsum('ij,j...->i...', W, attr)
+            if not is_sparse:
+                new_node_attrs[name] = jnp.einsum('ij,j...->i...', W, attr)
+                continue
+            if attr.ndim != 1:
+                raise NotImplementedError(
+                    f"sparse aggregation of {name!r} (shape {attr.shape}): BCOO "
+                    f"supports rank-1 attributes only; use a dense adjacency for "
+                    f"higher-rank fusion (see module docstring).")
+            agg = W @ attr
+            new_node_attrs[name] = agg * scale if normalize_rows else agg
         return state.replace(node_attrs=new_node_attrs)
 
     return transform

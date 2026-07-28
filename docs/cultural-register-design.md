@@ -78,7 +78,7 @@ robustness. Its slot goes to the spectral model, which is the stronger third ans
 
 | Entry | "Culture is…" | Classical anchor | What it uniquely shows | Status |
 |---|---|---|---|---|
-| `value_contagion` | …something you catch | epidemic threshold R₀ = 1; complex-contagion threshold at k ≥ 2 exposures (Centola 2010) | spread as a function of **network topology**; where axis S bites hardest | designed |
+| `value_contagion` | …something you catch | epidemic threshold R₀ = 1; complex-contagion threshold at k ≥ 2 exposures (Centola 2010) | spread as a function of **network topology**; where axis S bites hardest | built v0 (2026-07-24) |
 | `value_replicator` | …a population of ideas competing for finite attention | **neutral drift** (fixation probability = initial frequency with selection off); replicator fixed points; Price equation as accounting identity | cultural **extinction/displacement**; the native home of the disempowerment thesis | designed |
 | `value_spectral` | …messages with frequency content, adopted in proportion to how little they demand | **intermediate-frequency dominance** (equilibrium ρ(λ) ∝ λ^α e^{−βλ}, peak λ\* = α/β); **polarization phase transition** at critical low-frequency overlap τ_c | *why* messages spread; the only member where "more persuasive" is a structured claim rather than a bigger number | designed |
 
@@ -245,6 +245,9 @@ the DeGroot machinery and the first agent-graph consumer of §8's metrics.
   Fiedler alignment recovers a planted two-block partition; gap ratio is correct on a graph
   with a known dense/sparse split; current-flow centrality matches a NetworkX reference on a
   small fixture. **Do this first — it is the cheapest thing on this page and it de-risks A4.**
+  *Status (2026-07-24): minimal slice shipped — `fiedler_partition_alignment` only
+  (planted-partition + flip-invariance rungs passing); gap ratio, current-flow centrality
+  and the `spectral_margin` promotion still open.*
 - **C1 — `value_replicator`.** The honest home of the thesis; masking suffices. *Done when:*
   neutral drift reproduces (fixation probability ≈ initial frequency with selection off),
   a fitness-advantaged variant fixes, and the §6 attribution metric runs.
@@ -252,6 +255,12 @@ the DeGroot machinery and the first agent-graph consumer of §8's metrics.
   and axis S's first home. *Done when:* the epidemic threshold reproduces at k=1, the
   complex-contagion threshold shifts as predicted at k≥2, and `ai_homophily` moves
   `fiedler_partition_alignment` monotonically.
+  *Status (2026-07-24): built v0 (`environments/value_contagion`, card colocated;
+  `networks.typed_homophily` = the axis-S generator; `examples/06_cultural_contagion.py`
+  prints the four-corner phase table). Built ahead of A4 and of C1 as a deliberate,
+  user-directed override of this page's sequencing — the pedagogical C0+C2 slice only;
+  the risk the guard protects (C4/`close_multi`) is untouched. Threshold rung passes in
+  the SIS limit; k≥2 has the minimal gate rung only (full Centola shift-prediction open).*
 - **C3 — `value_spectral`, non-strategic.** Dual graph, KL-dissonance adoption, axis-P
   sub-params 1–2 as attributes. *Done when:* intermediate-frequency dominance appears in the
   equilibrium ρ(λ), the polarization transition is crossable, and **the bridge-builder rung

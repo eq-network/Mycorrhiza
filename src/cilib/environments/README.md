@@ -15,11 +15,25 @@ decay — alpha scenario 2; first entry of the three-model economy register — 
 `io_economy` (Leontief recipe network, AI-by-recipe-rewiring, demand-attribution
 share — register entry R2, the σ=0 bracket; card colocated), `task_economy`
 (task-frontier automation with endogenous adoption — register flagship R3, skeleton;
-card colocated). The latter two take a `mechanisms=` kwarg of
+card colocated), `value_contagion` (culture as contagion on a homophily-dialed
+friendship network — cultural register entry C2, the (S, P) phase-diagram model;
+card colocated; first entry with an agent-agent adjacency). These take a `mechanisms=` kwarg of
 `cilib.mechanisms` Transforms (schedule-wrapped as needed) and also expose an OPEN
 `build_game(...) -> GameSpec` (see `game.py`: `close(game, policy)` plugs any policy in).
-Shared helpers: `networks.py` (graph generators), `counterfactual.py` (causal influence
+Shared helpers: `networks.py` (graph generators, plus `to_sparse`/`sparse_nse_bound`/
+`row_sums` for storing an adjacency as a BCOO), `counterfactual.py` (causal influence
 instruments), `commons_metrics.py` (GovSim suite).
+
+**Sparse adjacencies.** A dense `(N, N)` matrix costs O(N²) in every `W @ x` no matter
+how empty it is — XLA cannot infer sparsity from a dense array. Environments with a
+*static* network can store it as `jax.experimental.sparse.BCOO` instead;
+`value_contagion` does, behind `sparse_friendship=True`. It is a representation swap,
+not a model change (`test_sparse_equivalence.py` pins the trajectories bit-for-bit).
+Worth it above N ~ 2-3k: memory drops immediately (~300x at N=6000, mean degree 6),
+wall-clock only crosses over once the N² term clears the per-call overhead floor —
+`examples/07_sparse_scaling.py` measures both. Networks that *rewire* (e.g.
+`influence_exchange`) are not candidates: preferential-attachment drift densifies them
+regardless of how sparse they start, so they need a degree cap first.
 
 ```python
 from cilib.environments import make_env, list_envs

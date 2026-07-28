@@ -19,6 +19,7 @@ from .governed_commons import build_governed_commons
 from .compute_economy import build_compute_economy
 from .io_economy import build_io_economy
 from .task_economy import build_task_economy
+from .value_contagion import build_value_contagion
 
 # name -> builder ((**cfg) -> EnvSpec).
 REGISTRY = {
@@ -27,6 +28,7 @@ REGISTRY = {
     "compute_economy": build_compute_economy,
     "io_economy": build_io_economy,
     "task_economy": build_task_economy,
+    "value_contagion": build_value_contagion,
 }
 
 

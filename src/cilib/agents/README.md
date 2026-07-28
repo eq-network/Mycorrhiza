@@ -11,7 +11,9 @@ so it runs inside `core.scan.run_scan` and `vmap`s over seeds.
 **Entries:** `random`, `tit_for_tat`, `linear`, `ai_delegate` (principal→delegate acting
 with an alignment dial — the influence-metric hook), `labor_supply` (work_pref-scaled,
 mildly wage-elastic household rule — closes `compute_economy`), `spend_share`
-(spend-by-preference household rule — closes `io_economy`). (Also present:
+(spend-by-preference household rule — closes `io_economy`), `broadcast`
+(constant transmission-effort rule — closes `value_contagion`; the C4
+strategic-persuader seam). (Also present:
 `rl_components`, `profiles` — support modules, not yet cataloged.)
 
 **Add one:**

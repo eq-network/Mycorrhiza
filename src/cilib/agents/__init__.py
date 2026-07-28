@@ -9,6 +9,7 @@ from .learnable import LinearPolicy
 from .delegate import DelegatePolicy
 from .labor_supply import LaborSupplyPolicy
 from .spend_share import SpendSharePolicy
+from .broadcast import BroadcastPolicy
 
 # name -> factory (here, the Policy class constructor).
 REGISTRY = {
@@ -18,7 +19,8 @@ REGISTRY = {
     "ai_delegate": DelegatePolicy,
     "labor_supply": LaborSupplyPolicy,
     "spend_share": SpendSharePolicy,
+    "broadcast": BroadcastPolicy,
 }
 
 __all__ = ["RandomPolicy", "TitForTatPolicy", "LinearPolicy", "DelegatePolicy",
-           "LaborSupplyPolicy", "SpendSharePolicy", "REGISTRY"]
+           "LaborSupplyPolicy", "SpendSharePolicy", "BroadcastPolicy", "REGISTRY"]

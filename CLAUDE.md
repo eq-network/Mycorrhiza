@@ -62,13 +62,21 @@ future study; a *paradigm* wires many pieces together to make one paper's argume
   effectful agents (LLM/HTTP).
 - **Mechanisms/transformations declare `.reads` / `.writes`** via `@transform` so
   `compile_pipeline` can derive order. Same-family mechanisms keep disjoint writes.
+- **The trajectory is the memory ceiling, not the state.** `default_trace` returning
+  raw per-agent arrays costs O(T·N) — at N≥500 that is ~3000× the state itself, and
+  it is what stops long or large runs (not the dense adjacency, which
+  `sparse_friendship` already fixes). No metric in this repo needs the joint (T, N)
+  array. Reduce the *agent* axis in `trace_fn` (a (T,) scalar series is ~8 KB and
+  worth keeping), and fold anything per-agent or long-window with a
+  `metrics/reducers.py` `Reducer` via `EnvSpec.run_reduced` — O(1) carry, same number
+  to float32 rounding. `examples/08_streaming_metrics.py` measures the gap.
 - **Simplicity is a hard requirement here.** Prefer short, inspectable code and
   deletion over new abstraction. A catalog you can read in one screen beats a clever
   registry framework.
 
 ## Verifying a change
 
-- Behavior-preserving refactor → `python -m pytest -q` must stay green (currently 160).
+- Behavior-preserving refactor → `python -m pytest -q` must stay green (currently 236).
 - A change to a paradigm's composition → assert the new pipeline is numerically
   identical to the old one for a fixed seed before deleting the old path.
 - A new catalog entry → a behavioral test asserting the *mechanism* (direction /

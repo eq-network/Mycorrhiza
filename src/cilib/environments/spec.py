@@ -28,6 +28,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 import jax.random as jr
 
 from cilib.core.graph import GraphState
+from cilib.core.reduce import Reducer, run_scan_reduce, run_scan_reduce_batch
 from cilib.core.scan import run_scan, run_scan_batch, RoundFn, TraceFn
 
 
@@ -67,6 +68,45 @@ class EnvSpec:
         tf = trace_fn if trace_fn is not None else self.trace_fn
         keys = jr.split(key, n_seeds)
         return run_scan_batch(self.round_fn, self.init_fn, n_steps, keys, trace_fn=tf)
+
+    def run_reduced(self, key: Any, n_steps: int, reducers: Dict[str, Reducer],
+                    trace_fn: Optional[TraceFn] = None
+                    ) -> Tuple[GraphState, Any, Dict[str, Any]]:
+        """One rollout scoring ``reducers`` INSIDE the scan — the constant-memory path.
+
+        Use this when the stacked trace would not fit: ``metrics`` consume a
+        materialized ``(T, N)`` trajectory, which is O(T) larger than the state
+        it came from (see ``core/reduce.py`` for the measured ratio). Reducers
+        fold in the carry instead, so cost is O(accumulator).
+
+        ``trace_fn`` defaults to ``None`` here rather than to ``self.trace_fn``:
+        the environments' default traces are exactly the per-agent arrays you are
+        trying not to materialize, so inheriting one would defeat the call. Pass
+        a deliberately cheap one — (T,)-shaped scalars are ~8 KB at T=2000 and
+        worth keeping for timelines.
+
+        Reducers are passed explicitly rather than carried on the spec because
+        ``GameSpec`` is frozen (CLAUDE.md) and could not propagate them through
+        ``close()``; an always-empty field would be dead weight. Environments
+        expose a ``make_reducers(cfg)`` factory instead.
+
+        Returns:
+            ``(final_state, trace, reduced)``.
+        """
+        k_init, k_run = jr.split(key)
+        return run_scan_reduce(self.round_fn, self.init_fn(k_init), n_steps,
+                               k_run, reducers, trace_fn=trace_fn)
+
+    def run_reduced_batch(self, key: Any, n_seeds: int, n_steps: int,
+                          reducers: Dict[str, Reducer],
+                          trace_fn: Optional[TraceFn] = None
+                          ) -> Tuple[GraphState, Any, Dict[str, Any]]:
+        """``vmap``ped sweep with in-scan reduction. ``reduced[name]`` is shaped
+        ``(n_seeds,)`` for a scalar metric — already the per-seed vector the
+        benchmark harness bootstraps over, with no trajectory kept."""
+        keys = jr.split(key, n_seeds)
+        return run_scan_reduce_batch(self.round_fn, self.init_fn, n_steps, keys,
+                                     reducers, trace_fn=trace_fn)
 
     def evaluate(self, trace: Any) -> Dict[str, Any]:
         """Score a trajectory (or batch of trajectories) with every metric in the suite."""

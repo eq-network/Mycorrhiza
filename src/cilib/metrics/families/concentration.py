@@ -38,6 +38,17 @@ def hhi_of(values):
     return jnp.sum(shares ** 2)
 
 
+def centralization_of(values):
+    """Freeman-style centralization of a non-negative 1-D distribution:
+    ``(max_share - 1/N) / (1 - 1/N)``. 0 = perfectly dispersed, 1 = one node
+    holds everything. The A4 mainline indicator (alpha plan: "centralization"),
+    reading how far the top actor is above an equal split."""
+    n = values.shape[0]
+    total = jnp.sum(values)
+    max_share = jnp.max(values) / (total + 1e-12)
+    return jnp.where(total > 0, (max_share - 1.0 / n) / (1.0 - 1.0 / n), 0.0)
+
+
 def harvest_gini(state: GraphState):
     """Gini of per-agent last harvest. 0 = equal extraction."""
     return gini_of(state.node_attrs["last_harvest"])

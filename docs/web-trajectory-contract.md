@@ -1,9 +1,14 @@
 # Web trajectory contract — the boundary between the engine and the lab page
 
-Status: **v1, in use** (2026-07-24). Consumed by the eq-network playground
+Status: **v1.1, in use** (2026-07-24). Consumed by the eq-network playground
 (`eq-network/prototypes/playground.html`, later `src/components/lab/sim/`).
 Producer: `examples/05_export_trajectory.py`. Change this file and both sides
 together or not at all.
+
+v1.1 (2026-07-24): `adj` is no longer reserved — `value_contagion` (A3/C2) is
+the first network game and emits its static `friendship` matrix; new optional
+`system` field carries the pipeline DAG derived from `@transform` metadata
+(`environments/system_graph.py`).
 
 ## Why
 
@@ -34,9 +39,37 @@ One JSON object per rollout:
   "global": { "resource_level": [/* T floats */], "policy_target": [ ... ] },
   "node":   { "harvest": [/* T*N floats, row-major t*N+i */], ... },
   "static": { "principal_pref": [/* N floats */], "alignment": [ ... ] },
-  "adj":    { }    // optional; [N*N] (or [T*N*N]) — reserved for network games (A3/A4)
+  "adj":    { "friendship": [/* N*N, row-major */] },   // network games; static per
+                                                        // run (from finals) or [T*N*N]
+  "system": {   // optional; the pipeline DAG as communication — derived from
+                // @transform reads/writes by environments/system_graph.py, so the
+                // System view / future graph editor gets a topology nobody hand-drew
+    "nodes": [
+      { "id": "culture", "kind": "field", "family": "node_attrs", "shape": [40] },
+      { "id": "rng_key", "kind": "field", "family": "global_attrs", "shape": [2],
+        "bookkeeping": true },              // plumbing: render dimmed, never hidden
+      { "id": "adopt", "kind": "transform", "reads": ["broadcast_effort", ...],
+        "writes": ["culture", "rng_key"] }
+    ],
+    "edges": [ { "from": "friendship", "to": "adopt" }, { "from": "adopt", "to": "culture" } ]
+  }
 }
 ```
+
+Consumer note for `system` (live since 2026-07-27): the playground consumes it
+— `Trajectories.fromJSON` passes it through verbatim, and a generic
+`PipelineScene` (one renderer, zero per-game code) draws any game's DAG as a
+transform spine with read-dominant fields above and write-dominant below.
+Consumer-side conventions layered on top, not producer fields: (a) the three
+JS-ported games embed exporter-generated *fixtures* of their fully-defended
+graphs and filter them by mechanism toggle (substring match on the transform
+id — schedules wrap the mechanism name), mirroring additive attachment; a
+payload-carried `system` overrides the fixture. (b) surviving mechanism
+transforms get a `color` annotation stamped consumer-side; producers should
+not emit `color`. (c) fields with no edges render as shelved "outside the
+declared pipeline" — the GameSpec boundary (observe → policy → actions)
+carries no transform metadata and appears via the action fields in `node`, so
+policy-read fields like `principal_pref` are honestly edge-less here.
 
 The browser lifts each array into a `Float64Array` and indexes `node` fields as
 `series[t * N + i]`. No nesting, no per-step objects — flat arrays keep a

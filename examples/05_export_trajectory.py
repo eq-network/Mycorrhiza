@@ -25,14 +25,22 @@ import jax.random as jr
 import numpy as np
 
 from cilib.core.schedule import ScheduleSpec, apply_schedule
-from cilib.environments import make_env
+from cilib.environments import (
+    compute_economy, coupled_society, governed_commons, influence_exchange,
+    make_env, value_contagion,
+)
+from cilib.environments.system_graph import system_graph
 from cilib.mechanisms import (
     REGISTRY as MECHANISMS,
-    AIRevenueTaxConfig, OwnershipCapConfig, QuotaVoteConfig, SanctionConfig,
+    AIRevenueTaxConfig, EnforcedAITaxConfig, InfluenceCapConfig,
+    OwnershipCapConfig, QuotaVoteConfig, SanctionConfig, SortitionConfig,
 )
 
 # Kept in sync by hand with experiments/benchmark/scenarios.py (same convention
 # as examples/04): this script depends only on the installed package.
+# A condition is either a list of (mechanism, config, schedule) triples or a
+# dict {"mechanisms": [...], "overrides": {...}} — value_contagion's corners
+# are config dials, not mechanisms.
 CONDITIONS = {
     "governed_commons": {
         "baseline": [],
@@ -48,14 +56,53 @@ CONDITIONS = {
                                    ScheduleSpec(onset=50)),
                                   ("ownership_cap", OwnershipCapConfig(cap_share=0.35), None)],
     },
+    "value_contagion": {
+        "pluralism": {"overrides": {"ai_homophily": 0.05, "p_advantage": 1.0}},
+        "assimilation": {"overrides": {"ai_homophily": 0.05, "p_advantage": 6.0}},
+        "parallel_cultures": {"overrides": {"ai_homophily": 0.9, "p_advantage": 1.0}},
+        "displacement": {"overrides": {"ai_homophily": 0.9, "p_advantage": 6.0}},
+    },
+    "influence_exchange": {
+        "organic": {"overrides": {"amp_onset": 10_000}},
+        "amplified": [],
+        "sortition_only": [("sortition", SortitionConfig(), ScheduleSpec(cadence=15))],
+        "defended": [("sortition", SortitionConfig(), ScheduleSpec(cadence=15)),
+                     ("influence_cap", InfluenceCapConfig(), None)],
+    },
+    "coupled_society": {
+        "sealed_undefended": {"overrides": {"kappa": 0.0}},
+        "coupled_undefended": [],
+        "coupled_defended": [("enforced_ai_tax", EnforcedAITaxConfig(), ScheduleSpec(onset=50)),
+                             ("sortition", SortitionConfig(), ScheduleSpec(cadence=15)),
+                             ("influence_cap", InfluenceCapConfig(), None)],
+        "sealed_defended": {
+            "mechanisms": [("enforced_ai_tax", EnforcedAITaxConfig(), ScheduleSpec(onset=50)),
+                           ("sortition", SortitionConfig(), ScheduleSpec(cadence=15)),
+                           ("influence_cap", InfluenceCapConfig(), None)],
+            "overrides": {"kappa": 0.0},
+        },
+    },
+}
+
+# env -> its module, for the derived system graph (build_steps/make_state are
+# the uniform subpackage convention; the graph is pipeline metadata, not data).
+ENV_MODULES = {
+    "governed_commons": governed_commons,
+    "compute_economy": compute_economy,
+    "value_contagion": value_contagion,
+    "influence_exchange": influence_exchange,
+    "coupled_society": coupled_society,
 }
 
 
 def export(env_name: str, condition: str, n_steps: int, seed: int) -> dict:
+    cond = CONDITIONS[env_name][condition]
+    triples, overrides = (cond.get("mechanisms", []), cond.get("overrides", {})) \
+        if isinstance(cond, dict) else (cond, {})
     mechs = tuple(apply_schedule(MECHANISMS[key](cfg), sched)
-                  for key, cfg, sched in CONDITIONS[env_name][condition])
-    env = make_env(env_name, mechanisms=mechs)
-    _, trace = env.run(jr.PRNGKey(seed), n_steps)
+                  for key, cfg, sched in triples)
+    env = make_env(env_name, mechanisms=mechs, **overrides)
+    finals, trace = env.run(jr.PRNGKey(seed), n_steps)
 
     payload = {"global": {}, "node": {}, "static": {}}
     n_agents = None
@@ -71,6 +118,19 @@ def export(env_name: str, condition: str, n_steps: int, seed: int) -> dict:
                 payload["node"][name] = arr.ravel().tolist()   # row-major t*N+i
         else:
             raise ValueError(f"trace field {name!r} has unsupported shape {arr.shape}")
+
+    if finals.adj_matrices:      # network games: static per run, read from finals
+        # densify at the boundary: the wire contract is a flat row-major N*N array
+        # whatever the in-engine representation. Off the hot path (once per run).
+        payload["adj"] = {
+            name: np.asarray(arr.todense() if hasattr(arr, "todense") else arr)
+                    .ravel().tolist()
+            for name, arr in finals.adj_matrices.items()}
+
+    mod = ENV_MODULES.get(env_name)
+    if mod is not None:          # the pipeline DAG read as communication
+        payload["system"] = system_graph(mod.build_steps(env.config, mechs),
+                                         mod.make_state(env.config, jr.PRNGKey(seed)))
 
     payload["meta"] = {
         "gameId": env_name,

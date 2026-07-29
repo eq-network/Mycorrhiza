@@ -39,9 +39,10 @@ not a ramp): below a closed-form efficiency level $e^{*} = (\delta/s + m)/v$,
 automation capital decays to extinction whatever its starting stock; above
 it, it compounds --- and because $e^{*}$ moves with policy, defenses acquire
 an \emph{eradication band}. Second, ownership concentration and output
-answer to different closures: the AI share of wealth rises in every demand
-closure we study, while whether output grows or winds down during the episode
-is decided by how much of the AI surplus recycles as demand --- so a
+answer to different closures: the AI share of wealth rises through the
+compounding phase in every demand closure we study, while whether output
+grows or winds down is decided by how much of the AI surplus recycles as
+demand --- so a
 dashboard watching output misses the ownership event under exactly the
 closure that keeps output healthy. Third, two standard defenses act through
 asymmetric channels: a profit tax rescales the survival threshold itself and
@@ -146,8 +147,8 @@ AI consumption $C_A = c_A W_A$         &     & $+$ & $-$ &     \\
 Wages $(1-a_j)v_j x_j$                 & $+$ & $-$ &     &     \\
 Capital revenue, private share        &     & $-$ & $+$ &     \\
 Capital revenue, public share         &     & $-$ &     & $+$ \\
-Upkeep on private stock $mK_i$        &     & $+$ & $-$ &     \\
-Upkeep on public stock $mK^{\mathrm{pub}}$ & & $+$ &  & $-$ \\
+Upkeep paid, private $\min(\mathrm{rev}_i, mK_i)$ &  & $+$ & $-$ & \\
+Upkeep paid, public $\min(\mathrm{rev}^{\mathrm{pub}}, mK^{\mathrm{pub}})$ & & $+$ &  & $-$ \\
 Investment purchase $I = \sum_i I_i$   &     & $+$ & $-$ &     \\
 Profit tax $\tau\relu{\pi_i}$          & $+$ &     & $-$ &     \\
 Public dividend $d^{\mathrm{pub}} = \sum_j \relu{\pi^{\mathrm{pub}}_j}$
@@ -220,7 +221,29 @@ are all purchases from sectors (demand, not leakage). Per tick:
 where $W_{A,i} \leftarrow \relu{W_{A,i} + (1-s)\relu{\pi_i} - C_{A,i}}$ is
 the AI's hoard (retained profit net of consumption; when $\pi_i \le 0$ the
 loss is charged to the stock: $K_i \leftarrow \relu{K_i + \pi_i}$ before
-depreciation). The public fund does \emph{not} reinvest its own earnings:
+depreciation).
+
+\emph{Upkeep settlement.} Upkeep is paid out of revenue only: the sector
+receives $\min(\mathrm{rev}, mK)$ from each owner, private or public. The
+unpaid remainder of an owner's upkeep obligation is \emph{not} a monetary
+flow at all --- it is the physical deterioration charged to the stock by the
+loss rule above. No agent ever pays money it does not have, and
+Table~\ref{tab:tfm}'s upkeep rows carry the $\min$ explicitly, so the table
+closes in the loss case too.
+
+\emph{The recycled-share closure family.} The experiments sweep a closure
+parameter $r \in [0,1]$ that scales the AI's \emph{discretionary outlays}:
+investment purchases become $r I_i$ (with capital formation scaled
+identically --- machines not bought are not built) and consumption becomes
+$r\, c_A W_{A,i}$; the unspent surplus accumulates in the tracked hoard
+$W_{A,i}$. Money is conserved at every $r$: hoarding here is a demand
+\emph{stall} --- value parked in a visible stock with velocity zero --- not
+a leak. (\texttt{io\_economy}'s analogous low-reinvestment endpoint is a
+true leak, money dropping out of the system; the fork deliberately repairs
+that while reproducing the same wind-down behavior through the stall.)
+Section~\ref{sec:substrates}'s baseline equations are the $r=1$ member.
+
+The public fund does \emph{not} reinvest its own earnings:
 $d^{\mathrm{pub}} = \sum_j \relu{\pi^{\mathrm{pub}}_j}$ is paid to
 households as an equal dividend, and a public loss shrinks
 $K^{\mathrm{pub}}_j$ by the same charge-to-stock rule. Public capital
@@ -251,7 +274,7 @@ $\delta$ & depreciation & tuned-for-legibility & conventional annual magnitude, 
 $A_{ij}$ & IO coefficients & tuned-for-legibility & hub+chain structure; values swept in E1 app.; note $v_j$ (hence $e^{*}$) inherits them\\
 $\sigma_s, \sigma_d$ & saving, drawdown & tuned-for-legibility & the \emph{ratio} pins $W_H/Y$ exactly (Prop.~\ref{prop:conserve} caveat) --- tuned but exactly load-bearing\\
 $c_A$ & AI consumption rate & tuned-for-legibility & keeps hoards finite; swept inside E2's $r$ family\\
-$r$ & recycled surplus share & arbitrary-but-swept & the closure family of Prop.~\ref{prop:decouple}; E2 axis\\
+$r$ & recycled surplus share & arbitrary-but-swept & scales AI discretionary outlays (\S\ref{sec:substrates}); Prop.~\ref{prop:decouple}, E2 axis\\
 $\tau$ & profit tax & arbitrary-but-swept & E3 axis\\
 $\omega$ & ownership diversion & arbitrary-but-swept & E3 axis (fidelity check, Cor.~\ref{cor:boundary})\\
 arrivals & entry schedule & arbitrary-but-swept & robustness appendix\\
@@ -270,10 +293,12 @@ The origin exchanges stability at $e^{*}$: for $e > e^{*}$ it is unstable
 and $K$ grows until the saturating automation share $a = eK/(eK+1)$ bounds
 revenue; for $e < e^{*}$ the origin is the unique fixed point and every
 trajectory converges to it. The sub-threshold regime has two characters:
-for $e \in (m/v,\, e^{*})$ profit stays positive and decay is geometric at
-rate $1-\delta+s(ev-m) < 1$; for $e \le m/v$ profit is non-positive, the
-loss is charged to the stock, and capital is eliminated without ever earning
-its upkeep.
+for $e \in (m/v,\, e^{*})$ the capital is profitable but under-compounding,
+decaying geometrically at rate $1-\delta+s(ev-m) < 1$; for $e \le m/v$ it is
+loss-making from the first tick --- it never earns its upkeep --- and decays
+at the loss-compounded rate $(1-\delta)\bigl(1-\min(m-ev,\,1)\bigr)$, with
+exact elimination in finite time only in the deep sub-band $e < (m-1)/v$
+where a single tick's loss exceeds the stock.
 \end{proposition}
 \noindent\emph{Remark (what is and is not new).} \texttt{compute\_economy}
 already carries a closed-form growth-factor threshold with always-positive
@@ -322,18 +347,23 @@ localized by bisection over transforms.
 not]\label{prop:decouple}
 Fix $e > e^{*}$ (the compounding regime) and consider the family of demand
 closures indexed by the recycled share
-$r \in [0,1]$ of the AI surplus (upkeep, investment, and consumption
-returned as sector demand; $r=1$ is the closure of
-Section~\ref{sec:substrates}, $r<1$ hoards the remainder as in
-\texttt{io\_economy}'s low-reinvestment endpoint). Then: (i) the AI share of
-wealth is increasing along the episode for \emph{every} $r$, because
-$\Delta(W_A + K)$ is positive whenever $\pi > 0$ regardless of where the
-spending lands; (ii) whether aggregate output grows or winds down is decided
-by $r$: at $r = 1$ total final demand is conserved up to the household
-wealth buffer and output is non-decreasing, while for $r$ below a closure
-threshold the hoard is a demand leak and output contracts toward the
-AI-self-demand floor. Concentration is the robust event; output is the
-closure-dependent one.
+$r \in [0,1]$ of the AI's discretionary outlays (defined in
+Section~\ref{sec:substrates}: investment and consumption scale by $r$, the
+unspent surplus parks in the tracked hoard $W_A$; $r=1$ is the baseline
+closure). Then: (i) \emph{over the compounding phase} (while $\pi > 0$ and
+$K$ is below saturation) the AI share of total wealth is increasing for
+every $r$: the AI side accumulates at the compounding rate
+($\Delta(W_A + K) = \pi - C_A - $ depreciation$\,> 0$), while household
+wealth is bounded --- $\Delta W_H = \sigma_s y_H - \sigma_d W_H$ with
+$y_H$ non-increasing as $a_j$ rises, so $W_H$ is trapped below its
+initial-income fixed point --- hence the ratio rises. As $K$ saturates the
+share converges to a limit rather than continuing to rise; the claim is the
+phase, not the limit. (ii) Whether aggregate output grows or winds down is
+decided by $r$: at $r = 1$ the AI's entire surplus returns as sector demand
+and output is non-decreasing, while for $r$ below a closure threshold the
+stalled hoard withdraws demand and output contracts toward the residual
+household-and-upkeep floor. Concentration (over the phase) is the robust
+event; output is the closure-dependent one.
 \end{proposition}
 \noindent\emph{Remark (which assumption does the work).} The ``output holds
 while ownership concentrates'' headline is \emph{conditional on} the

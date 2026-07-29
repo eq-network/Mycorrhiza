@@ -29,23 +29,27 @@ committed experiment configurations.}}
 
 \begin{abstract}
 We study a deliberately small model of an economy in which AI systems own
-productive capital that must out-earn its upkeep before it can compound. The
-model is stock-flow consistent by construction: every flow has a source and a
-sink, and a conservation probe verifies closure at every tick. Three results
-survive our attempts to break them. First, capital survival has a hard
-threshold (a knee, not a ramp): below a closed-form efficiency level
-$e^{*} = (\delta/s + m)/v$, automation capital is absorbed at zero; above it,
-it compounds. Second, output and ownership decouple: total activity can grow
-throughout an episode in which the AI share of wealth rises from zero to a
-majority, so a dashboard watching output misses the event entirely. Third, two
-standard defenses act through asymmetric channels: a profit tax shrinks the
-reinvestable surplus and can push the system back across the survival
-threshold at an output cost, while an ownership diversion re-routes the same
-accumulation to households at no output cost by construction. All claims are
-counterfactual orderings inside stated toy worlds --- none is a forecast. We
-state every assumption with its type (anchored to literature, tuned for
-legibility, or arbitrary-but-swept), and we report which results survive
-structural replacement of the underlying economy.
+productive capital that must out-earn its upkeep before it can compound. These
+are toy worlds of a few dozen accounting identities --- nothing is fitted to
+data, and no statement in this paper is a forecast. The model is stock-flow
+consistent by construction: every flow has a source and a sink, and a
+conservation probe verifies closure at every tick. Three results survive our
+attempts to break them. First, capital survival has a hard threshold (a knee,
+not a ramp): below a closed-form efficiency level $e^{*} = (\delta/s + m)/v$,
+automation capital decays to extinction whatever its starting stock; above
+it, it compounds --- and because $e^{*}$ moves with policy, defenses acquire
+an \emph{eradication band}. Second, ownership concentration and output
+answer to different closures: the AI share of wealth rises in every demand
+closure we study, while whether output grows or winds down during the episode
+is decided by how much of the AI surplus recycles as demand --- so a
+dashboard watching output misses the ownership event under exactly the
+closure that keeps output healthy. Third, two standard defenses act through
+asymmetric channels: a profit tax rescales the survival threshold itself and
+can eradicate capital at an output cost, while an ownership diversion splits
+the same accumulation between private and public hands at no output cost by
+construction. We state every assumption with its type (anchored to
+literature, tuned for legibility, or arbitrary-but-swept), and we report
+which results survive structural replacement of the underlying economy.
 \end{abstract}
 
 \section{Question and epistemic contract}\label{sec:question}
@@ -127,28 +131,45 @@ state the accounting first and derive the dynamics under it.
 
 \begin{table}[t]
 \centering\small
-\caption{Transaction-flow matrix (one tick). Rows are flows; each row sums to
-zero. $+$ receives, $-$ pays. Capital account rows record stock changes.
+\caption{Transaction-flow matrix (one tick). Current-account rows are flows
+of money and each sums to zero across columns; capital-account rows record
+who holds title to the capital the investment flow purchased. $+$ receives,
+$-$ pays. Every symbol has a generating rule in
+Section~\ref{sec:substrates}, eq.~\eqref{eq:flows}--\eqref{eq:kupdate}.
 \label{tab:tfm}}
 \begin{tabular}{lcccc}
 \toprule
- & Households & Sectors & AI systems & Public fund\\
+\emph{Current account} & Households & Sectors & AI systems & Public fund\\
 \midrule
-Consumption $C_H$            & $-$ & $+$ &     &     \\
-AI consumption $C_A$         &     & $+$ & $-$ &     \\
-Wages $(1-a_j)v_j x_j$       & $+$ & $-$ &     &     \\
-Capital revenue $a_j v_j x_j$&     & $-$ & $+$ & $+$ \\
-Upkeep $m K$                 &     & $+$ & $-$ & $-$ \\
-Investment goods $I$         &     & $+$ & $-$ & \\
-Profit tax $\tau \pi_+$      & $+$ &     & $-$ &     \\
-Dividends $d_{\mathrm{pub}}$ & $+$ &     &     & $-$ \\
+Household consumption $C_H$            & $-$ & $+$ &     &     \\
+AI consumption $C_A = c_A W_A$         &     & $+$ & $-$ &     \\
+Wages $(1-a_j)v_j x_j$                 & $+$ & $-$ &     &     \\
+Capital revenue, private share        &     & $-$ & $+$ &     \\
+Capital revenue, public share         &     & $-$ &     & $+$ \\
+Upkeep on private stock $mK_i$        &     & $+$ & $-$ &     \\
+Upkeep on public stock $mK^{\mathrm{pub}}$ & & $+$ &  & $-$ \\
+Investment purchase $I = \sum_i I_i$   &     & $+$ & $-$ &     \\
+Profit tax $\tau\relu{\pi_i}$          & $+$ &     & $-$ &     \\
+Public dividend $d^{\mathrm{pub}} = \sum_j \relu{\pi^{\mathrm{pub}}_j}$
+                                       & $+$ &     &     & $-$ \\
 \midrule
-$\Delta$ wealth $W_H$        & $\mp$ & & & \\
-$\Delta$ wealth $W_A$        &     &     & $\mp$ & \\
-$\Delta$ capital $K$ (capital acct.) & & & $+I_{A}$ & $+I_{\mathrm{pub}}$ \\
+\emph{Wealth accumulation} & & & & \\
+$\Delta W_H = \sigma_s y_H - \sigma_d W_H$ & $\checkmark$ & & & \\
+$\Delta W_A = (1-s)\relu{\pi} - C_A$   &     &     & $\checkmark$ & \\
+\midrule
+\emph{Capital account (title to $I$)} & & & & \\
+$\Delta K$ from investment             &     &     & $+(1-\omega)I$ & $+\omega I$ \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+The one deliberate separation of money from title: the AI pays the whole
+investment purchase $I$ (current account, closing that row), while ownership
+of the resulting capital splits $(1-\omega)$ private, $\omega$ public
+(capital account). Sectors are pass-throughs (zero-margin outside the
+capital share); the public fund's only income is its pro-rata capital
+revenue, its only outlays upkeep and the dividend, and its stock grows only
+via $\omega I$ --- it has no other resources, so its column closes.
 
 Money is conserved: summing all current-account rows gives zero, so the total
 money stock $M = Y_{\mathrm{disp}} + W_H + W_A$ changes only via the stated
@@ -176,23 +197,41 @@ share $\mathbf{1}^{\top}(I-A)^{-1}d_H \,/\, \mathbf{1}^{\top}(I-A)^{-1}d$,
 anchored analytically by hypothetical extraction.
 
 \paragraph{S3: Capital economy (\texttt{capital\_economy}, this paper's
-fork).} S2 plus an \emph{owned} AI capital stock. AI system $i$ holds
-$K_i \ge 0$ in a home sector; capital contributes capacity $e K_i$ against
-one unit of human capacity, so the sector automation share is
-$a_j = eK_j / (eK_j + 1)$. Revenue $a_j v_j x_j$ accrues to capital owners
-\emph{pro rata}; upkeep $m K_i$ is paid before profit, and both upkeep and
-investment are purchases from the machine sector (they are demand, not
-leakage). Profit
-$\pi_i = \mathrm{rev}_i - m K_i$ updates the stock:
-\begin{equation}\label{eq:kupdate}
-  K_i \;\leftarrow\; \relu{(1-\delta)K_i + s\,\relu{\pi_i}},
-\end{equation}
-with $s$ the reinvestment rate and $\delta$ depreciation. The two clips are
-the fork's substance: unpaid upkeep eats capital, and the zero state is
-absorbing. Households earn the labor share $(1-a_j)v_j x_j$, spend
-$(1-\sigma_s)$ of income plus a drawdown $\sigma_d W_H$ of wealth (the
-closure that makes the no-AI loop conservative), and receive tax and dividend
-transfers when the corresponding mechanisms are scheduled.
+fork).} S2 plus \emph{owned} capital stocks. AI system $i$ holds
+$K_i \ge 0$ in a home sector; when the ownership-diversion mechanism is
+scheduled, a public fund holds a stock $K^{\mathrm{pub}}_j \ge 0$ in each
+sector under \emph{identical technology}. Capital contributes capacity
+$e K$ against one unit of human capacity, so with sector capital
+$K_j^{\mathrm{tot}} = \sum_{i \in j} K_i + K^{\mathrm{pub}}_j$ the
+automation share is $a_j = eK_j^{\mathrm{tot}} / (eK_j^{\mathrm{tot}} + 1)$.
+Capital revenue $a_j v_j x_j$ accrues to all owners in the sector
+\emph{pro rata by stock}; upkeep $mK$ is paid by every owner --- private and
+public alike --- before profit, and upkeep, investment, and AI consumption
+are all purchases from sectors (demand, not leakage). Per tick:
+\begin{align}
+  \pi_i &= \mathrm{rev}_i - m K_i,
+  &\pi^{\mathrm{pub}}_j &= \mathrm{rev}^{\mathrm{pub}}_j - m K^{\mathrm{pub}}_j,\notag\\
+  I_i &= s\,\relu{\pi_i},
+  &C_{A,i} &= c_A\, W_{A,i},\label{eq:flows}\\
+  K_i &\leftarrow \relu{(1-\delta)K_i + (1-\omega) I_i},
+  &K^{\mathrm{pub}}_j &\leftarrow \relu{(1-\delta)K^{\mathrm{pub}}_j
+     + \textstyle\sum_{i\in j}\omega I_i},\label{eq:kupdate}
+\end{align}
+where $W_{A,i} \leftarrow \relu{W_{A,i} + (1-s)\relu{\pi_i} - C_{A,i}}$ is
+the AI's hoard (retained profit net of consumption; when $\pi_i \le 0$ the
+loss is charged to the stock: $K_i \leftarrow \relu{K_i + \pi_i}$ before
+depreciation). The public fund does \emph{not} reinvest its own earnings:
+$d^{\mathrm{pub}} = \sum_j \relu{\pi^{\mathrm{pub}}_j}$ is paid to
+households as an equal dividend, and a public loss shrinks
+$K^{\mathrm{pub}}_j$ by the same charge-to-stock rule. Public capital
+therefore grows \emph{only} through the diverted slice $\omega I_i$ of AI
+investment: the AI pays for the machine (current account), the title splits
+$(1-\omega, \omega)$ (capital account) --- money and ownership are separated
+exactly once, and Table~\ref{tab:tfm} records both sides. Households earn
+the labor share $(1-a_j)v_j x_j$, spend $(1-\sigma_s)$ of income plus a
+drawdown $\sigma_d W_H$ of wealth (the closure that makes the no-AI loop
+conservative), and receive tax revenue and public dividends as equal
+transfers when those mechanisms are scheduled.
 
 \subsection{Parameters, typed}\label{sec:params}
 
@@ -208,11 +247,13 @@ Param & Meaning & Type & Note\\
 $e$ & capital efficiency & arbitrary-but-swept & the knee axis (E1)\\
 $m$ & upkeep per unit $K$ & tuned-for-legibility & sets knee \emph{location}; only existence claimed\\
 $s$ & reinvestment rate & arbitrary-but-swept & E1 second axis\\
-$\delta$ & depreciation & anchored & standard 5\%/period magnitude\\
-$A_{ij}$ & IO coefficients & tuned-for-legibility & hub+chain structure; values swept in E1 app.\\
-$\sigma_s, \sigma_d$ & saving, drawdown & tuned-for-legibility & ratio pins $W_H/Y$; conservation requires the pair\\
+$\delta$ & depreciation & tuned-for-legibility & conventional annual magnitude, but the tick is not calibrated to a year --- no citation would be honest\\
+$A_{ij}$ & IO coefficients & tuned-for-legibility & hub+chain structure; values swept in E1 app.; note $v_j$ (hence $e^{*}$) inherits them\\
+$\sigma_s, \sigma_d$ & saving, drawdown & tuned-for-legibility & the \emph{ratio} pins $W_H/Y$ exactly (Prop.~\ref{prop:conserve} caveat) --- tuned but exactly load-bearing\\
+$c_A$ & AI consumption rate & tuned-for-legibility & keeps hoards finite; swept inside E2's $r$ family\\
+$r$ & recycled surplus share & arbitrary-but-swept & the closure family of Prop.~\ref{prop:decouple}; E2 axis\\
 $\tau$ & profit tax & arbitrary-but-swept & E3 axis\\
-$\omega$ & ownership diversion & arbitrary-but-swept & E3 axis\\
+$\omega$ & ownership diversion & arbitrary-but-swept & E3 axis (fidelity check, Cor.~\ref{cor:boundary})\\
 arrivals & entry schedule & arbitrary-but-swept & robustness appendix\\
 \bottomrule
 \end{tabular}
@@ -222,25 +263,49 @@ arrivals & entry schedule & arbitrary-but-swept & robustness appendix\\
 
 \begin{proposition}[Survival threshold; the knee]\label{prop:knee}
 Let a single AI system hold capital $K$ in a sector with per-tick value added
-$v$ held fixed, and update by \eqref{eq:kupdate} with revenue
+$v$ held fixed, and update by \eqref{eq:kupdate} ($\omega = 0$) with revenue
 $\mathrm{rev} = e v K + o(K)$ as $K \to 0$. Define
 \[ e^{*} \;=\; \frac{\delta/s + m}{v}. \]
-For $e < e^{*}$ the origin is the unique fixed point and is globally
-absorbing; for $e > e^{*}$ the origin is unstable and $K$ grows until the
-saturating automation share $a = eK/(eK+1)$ bounds revenue. The transition is
-an exchange of stability of a piecewise-linear map, and the sub-threshold
-regime is a true absorbing zero, not asymptotic decay.
+The origin exchanges stability at $e^{*}$: for $e > e^{*}$ it is unstable
+and $K$ grows until the saturating automation share $a = eK/(eK+1)$ bounds
+revenue; for $e < e^{*}$ the origin is the unique fixed point and every
+trajectory converges to it. The sub-threshold regime has two characters:
+for $e \in (m/v,\, e^{*})$ profit stays positive and decay is geometric at
+rate $1-\delta+s(ev-m) < 1$; for $e \le m/v$ profit is non-positive, the
+loss is charged to the stock, and capital is eliminated without ever earning
+its upkeep.
 \end{proposition}
+\noindent\emph{Remark (what is and is not new).} \texttt{compute\_economy}
+already carries a closed-form growth-factor threshold with always-positive
+profit. The fork's additions are (i) the upkeep floor, which creates the
+$e \le m/v$ regime where capital is loss-making outright, and (ii) the fact
+that $e^{*}$ moves with policy (Proposition~\ref{prop:defenses}), giving
+defenses an \emph{eradication band} $(e^{*}(0), e^{*}(\tau))$ rather than
+only a slowing effect. We claim the existence and policy-dependence of the
+threshold, not any particular location.
 \noindent\emph{Proof strategy.} Two-branch analysis of the piecewise-linear
-map; the profit clip makes the sub-threshold branch $K \mapsto (1-\delta)K$
-after finite time. \TODO{full proof, appendix A. $e^*$ committed before E1.}
+map $K \mapsto \relu{(1-\delta)K + s\relu{(ev-m)K}}$.
+\TODO{full proof, appendix A. $e^*$ committed before E1.}
+\noindent\emph{Scope caveat (endogenous $v$).} In the full S3 model
+$v_j x_j$ is endogenous: household demand falls as $a_j$ rises and AI
+upkeep/investment/consumption feed $x \leftarrow Ax + d$, so sector value
+added responds to $K$ through the \emph{quantity} channel even with prices
+and $A_{ij}$ fixed. Proposition~\ref{prop:knee} is the frozen-$v$ skeleton;
+E1 checks the empirical knee against the analytic $e^{*}$ evaluated on the
+\emph{measured} range of $v_j x_j$ along each run, and the gap between the
+two is reported, not assumed away.
 
 \begin{proposition}[Conservation of the closed loop]\label{prop:conserve}
-With no AI systems active, total money $M_t = \sum_h y_{h,t} + \sum_h W_{h,t}$
-is invariant under the household spend/save/drawdown dynamics, and the
-economy has a line of neutral fixed points indexed by $M_0$ with
-$W_H^{*}/y^{*} = \sigma_s/\sigma_d$.
+With no AI systems active, total money
+$M_t = \sum_h y_{h,t} + \sum_h W_{h,t}$ is invariant under the household
+spend/save/drawdown dynamics, and the economy has a line of neutral fixed
+points indexed by $M_0$, along which aggregate wealth and aggregate income
+satisfy $\sum_h W_{h}^{*} \,/\, \sum_h y_{h}^{*} = \sigma_s/\sigma_d$.
 \end{proposition}
+\noindent\emph{Caveat.} The \emph{existence} of the conserved quantity and
+the neutral line is the claim; the level of the wealth-to-income ratio is a
+direct artifact of the tuned pair $(\sigma_s, \sigma_d)$ and carries no
+economic content (Table~\ref{tab:params}).
 
 \begin{proposition}[Composition preserves conservation]\label{prop:compose}
 If every transform in the engine pipeline is locally flow-conservative (its
@@ -253,41 +318,97 @@ and a global probe suffices to detect it.
 Section~\ref{sec:sfc} were caught by one global probe and could then be
 localized by bisection over transforms.
 
+\begin{proposition}[Decoupling is closure-dependent; concentration is
+not]\label{prop:decouple}
+Fix $e > e^{*}$ (the compounding regime) and consider the family of demand
+closures indexed by the recycled share
+$r \in [0,1]$ of the AI surplus (upkeep, investment, and consumption
+returned as sector demand; $r=1$ is the closure of
+Section~\ref{sec:substrates}, $r<1$ hoards the remainder as in
+\texttt{io\_economy}'s low-reinvestment endpoint). Then: (i) the AI share of
+wealth is increasing along the episode for \emph{every} $r$, because
+$\Delta(W_A + K)$ is positive whenever $\pi > 0$ regardless of where the
+spending lands; (ii) whether aggregate output grows or winds down is decided
+by $r$: at $r = 1$ total final demand is conserved up to the household
+wealth buffer and output is non-decreasing, while for $r$ below a closure
+threshold the hoard is a demand leak and output contracts toward the
+AI-self-demand floor. Concentration is the robust event; output is the
+closure-dependent one.
+\end{proposition}
+\noindent\emph{Remark (which assumption does the work).} The ``output holds
+while ownership concentrates'' headline is \emph{conditional on} the
+full-recycling closure --- we state this rather than let the accounting
+smuggle it. What is unconditional is the converse reading: no value of $r$
+rescues the ownership share, and the two dashboards (output, ownership)
+disagree precisely when $r$ is high --- the regime in which the economy
+looks healthiest. This matches \texttt{io\_economy}'s independently measured
+endpoints (activity $21.3 \to 32.7$ with human share $\to 0.01$ at full
+reinvestment; activity $\to 0$ at $r=0.3$), and the same pattern reproduced
+in an independent JS implementation --- cross-implementation agreement we
+report as evidence the mechanism is not an artifact of either codebase.
+\emph{Proof strategy: demand-accounting identity for (ii); positivity of the
+accumulation identity for (i). \TODO{appendix; E2 sweeps $r$.}}
+
 \begin{proposition}[Asymmetric defenses]\label{prop:defenses}
 A profit tax at rate $\tau$ rescales the effective reinvestment to
 $s(1-\tau)$, raising the survival threshold to
 $e^{*}(\tau) = (\delta/(s(1-\tau)) + m)/v$: for
 $e \in (e^{*}(0),\, e^{*}(\tau))$ the tax is \emph{eradicating}, and in the
 compounding regime it lowers steady capital and can lower output through the
-investment-demand channel. An ownership diversion $\omega$ (a fraction of
-each investment flow accrues to a public fund with identical technology)
-leaves the aggregate capital dynamics unchanged and is output-neutral by
-construction; it changes only the ownership split of the same accumulation,
-$K_{\mathrm{pub}}/K_{\mathrm{tot}} \to \omega$.
+investment-demand channel. An ownership diversion $\omega$ leaves the
+aggregate capital dynamics unchanged and is output-neutral by construction;
+it changes only the ownership split of the same accumulation, with
+$K^{\mathrm{pub}}/K^{\mathrm{tot}} \to \omega$ in the compounding regime.
 \end{proposition}
+\noindent\emph{Proof sketch.} For the tax: $\relu{\pi}$ enters
+\eqref{eq:kupdate} only through $s(1-\tau)\relu{\pi}$, so the small-$K$
+growth factor is $1-\delta+s(1-\tau)(ev-m)$ and the threshold algebra of
+Proposition~\ref{prop:knee} applies with $s \mapsto s(1-\tau)$. For the
+diversion: private and public stocks in a sector earn and pay at identical
+per-unit rates ($\mathrm{rev} \propto K$, upkeep $= mK$), so
+$K^{\mathrm{tot}} = K_i + K^{\mathrm{pub}}$ obeys the \emph{same} update as
+the undiverted stock and the split evolves as a linear share converging to
+$\omega$. \emph{This same-per-unit-rates condition is load-bearing}: fixed
+costs, scale economies, or differential public-fund efficiency would break
+the additivity, and the output-neutrality claim with it.
 \begin{corollary}[Falsifiable asymmetry]\label{cor:boundary}
 Sweeping $\tau$ upward locates an output-cost boundary; sweeping $\omega$
-never does. \TODO{E3 verifies both halves.}
+never does. The $\tau$ half is a genuine empirical claim (no closed form for
+the output effect); the $\omega$ half follows from
+Proposition~\ref{prop:defenses} and its sweep in E3 is an
+implementation-fidelity check, not new economics.
 \end{corollary}
 
 \section{Experiments}\label{sec:experiments}
 
 Pre-registered predictions (committed with this section, before any sweep
 ran): (i) E1 exhibits both regimes with the empirical knee within the
-analytic $e^{*}$ band of Proposition~\ref{prop:knee} for the measured
-sector value-added range; (ii) E2 shows output non-decreasing while the AI
-wealth share crosses $0.4$, with bootstrapped output--share correlation
-indistinguishable from zero or positive; (iii) E3 shows the eradication band
-and output-cost boundary for $\tau$ and neither for $\omega$.
+analytic $e^{*}$ band of Proposition~\ref{prop:knee} evaluated on the
+measured sector value-added range --- a miss is reported as a bound on the
+demand-channel endogeneity, not retuned away; (ii) E2 shows the ownership
+share rising for every recycled-share closure $r$, output switching from
+non-decreasing (at $r=1$, where the share crosses $0.4$) to contracting
+below a closure threshold, and at $r=1$ a bootstrapped output--share
+correlation indistinguishable from zero or positive; (iii) E3 shows the
+eradication band and an output-cost boundary on the $\tau$ axis, and ---
+as an implementation-fidelity check, not a prediction --- neither on the
+$\omega$ axis.
 
 \begin{itemize}
   \item \textbf{E1 (knee).} Grid over $(e, s)$, both regimes required ---
   runs that never show the dies-out regime are a design failure, not a
   result. Scorecard with bootstrap CIs over shared seeds.
-  \item \textbf{E2 (decoupling).} Joint trajectory of output and wealth
-  share at defaults; correlation with CIs; cross-implementation agreement
-  with the independent JS prototype reported.
+  \item \textbf{E2 (decoupling).} Sweep of the recycled-share closure $r$:
+  ownership-share trajectory must rise for every $r$
+  (Proposition~\ref{prop:decouple}(i)); output must switch from
+  non-decreasing to contracting across the closure threshold
+  (\ref{prop:decouple}(ii)); joint output--share correlation with CIs at
+  $r=1$; cross-implementation agreement with the independent JS prototype
+  reported.
   \item \textbf{E3 (defenses).} $\tau \times \omega$ grid; orderings only.
+  The $\tau$ axis carries the empirical content (eradication band, output-cost
+  boundary); the $\omega$ axis is the implementation-fidelity check of
+  Corollary~\ref{cor:boundary}.
   \item \textbf{E4 (structural robustness).} The E1/E3 orderings re-run on
   S1 and S2 analogues where defined; what does \emph{not} transfer is
   reported with the same prominence as what does.
@@ -310,10 +431,15 @@ is a forecast of any actual economy.
 An adaptive capital owner that re-routes around the tax (breaks
 Proposition~\ref{prop:defenses}'s clean rescaling); price adjustment
 (dissolves the Leontief bottleneck behind Proposition~\ref{prop:knee}'s
-fixed $v$); upkeep costs that fall with scale (turns the knee into a moving
-target); empirical evidence that AI capital's return-on-capacity is far from
-any plausible upkeep boundary (makes the sub-threshold regime academic).
-Each of these is a named, testable successor model.
+fixed $v$); the demand-channel endogeneity of $v_j x_j$ already present in
+S3 (Proposition~\ref{prop:knee}'s scope caveat) turning out to move the
+empirical knee outside the analytic band in E1; upkeep costs that fall with
+scale (turns the knee into a moving target); fixed costs or scale economies
+in the public fund (break the same-per-unit-rates condition behind
+output-neutral diversion); empirical evidence that AI capital's
+return-on-capacity is far from any plausible upkeep boundary (makes the
+sub-threshold regime academic). Each of these is a named, testable
+successor model.
 
 \bibliographystyle{plainnat}
 \bibliography{refs}

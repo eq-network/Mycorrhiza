@@ -46,9 +46,12 @@ demand --- so a
 dashboard watching output misses the ownership event under exactly the
 closure that keeps output healthy. Third, two standard defenses act through
 asymmetric channels: a profit tax rescales the survival threshold itself and
-can eradicate capital at an output cost, while an ownership diversion splits
-the same accumulation between private and public hands at no output cost by
-construction. We state every assumption with its type (anchored to
+can eradicate capital at an output cost, while an ownership diversion never
+touches the threshold and instead lands in one of two measured regimes set
+by the fund's disposal rule --- a transfer (public share exactly $\omega$,
+output preserved, household income up) or a ratchet (a self-reinvesting fund
+asymptotically owns the whole stock while the economy grows). We state every
+assumption with its type (anchored to
 literature, tuned for legibility, or arbitrary-but-swept), and we report
 which results survive structural replacement of the underlying economy.
 \end{abstract}
@@ -321,12 +324,24 @@ E1 checks the empirical knee against the analytic $e^{*}$ evaluated on the
 two is reported, not assumed away.
 
 \begin{proposition}[Conservation of the closed loop]\label{prop:conserve}
-With no AI systems active, total money
-$M_t = \sum_h y_{h,t} + \sum_h W_{h,t}$ is invariant under the household
-spend/save/drawdown dynamics, and the economy has a line of neutral fixed
-points indexed by $M_0$, along which aggregate wealth and aggregate income
-satisfy $\sum_h W_{h}^{*} \,/\, \sum_h y_{h}^{*} = \sigma_s/\sigma_d$.
+Total money
+$M_t = (1-\sigma_s)\sum_h y_{h,t} + \sum W_t + \sum d^{K}_t
++ \mathbf{1}^{\top}A x_t$
+--- pending household spending, all wealth stocks, capital-linked demand in
+transit, and \emph{inventories in process} --- is invariant under the
+dynamics at every closure $r$, and with no AI systems active the economy has
+a line of neutral fixed points indexed by $M_0$, along which aggregate
+wealth and aggregate income satisfy
+$\sum_h W_{h}^{*} \,/\, \sum_h y_{h}^{*} = \sigma_s/\sigma_d$.
 \end{proposition}
+\noindent\emph{Remark (the probe disciplined the authors too).} The
+implementation's conservation probe initially reported a slow drift
+($+2.9\%$ over 200 ticks): the invariant we first wrote omitted the
+inventories-in-process stock $\mathbf{1}^{\top}Ax$, which grows as the
+intermediate-order pipeline expands with automation. Including it --- as
+stock-flow-consistent practice has always insisted inventories be included
+--- the measured drift is float-precision rounding ($\sim 2\times 10^{-6}$
+over 300 ticks), and exactly zero in the households-only economy.
 \noindent\emph{Caveat.} The \emph{existence} of the conserved quantity and
 the neutral line is the claim; the level of the wealth-to-income ratio is a
 direct artifact of the tuned pair $(\sigma_s, \sigma_d)$ and carries no
@@ -379,34 +394,58 @@ report as evidence the mechanism is not an artifact of either codebase.
 \emph{Proof strategy: demand-accounting identity for (ii); positivity of the
 accumulation identity for (i). \TODO{appendix; E2 sweeps $r$.}}
 
-\begin{proposition}[Asymmetric defenses]\label{prop:defenses}
+\begin{proposition}[Asymmetric defenses; two fund designs]\label{prop:defenses}
 A profit tax at rate $\tau$ rescales the effective reinvestment to
 $s(1-\tau)$, raising the survival threshold to
 $e^{*}(\tau) = (\delta/(s(1-\tau)) + m)/v$: for
 $e \in (e^{*}(0),\, e^{*}(\tau))$ the tax is \emph{eradicating}, and in the
 compounding regime it lowers steady capital and can lower output through the
-investment-demand channel. An ownership diversion $\omega$ leaves the
-aggregate capital dynamics unchanged and is output-neutral by construction;
-it changes only the ownership split of the same accumulation, with
-$K^{\mathrm{pub}}/K^{\mathrm{tot}} \to \omega$ in the compounding regime.
+investment-demand channel. An ownership diversion $\omega$ (title to a
+fraction $\omega$ of each investment purchase accrues to a public fund) is
+\emph{not} a neutral title split --- the fund's disposal rule decides the
+regime, and neither regime touches the survival threshold:
+\begin{itemize}
+  \item \textbf{Dividend fund} (pays all profit to households): the public
+  share of the capital stock converges to $\omega$ exactly; aggregate
+  capital is lower (the diverted slice stops compounding); output is
+  preserved to within the demand-path difference and household income rises
+  --- diversion acts as a \emph{transfer} channel.
+  \item \textbf{Mirror fund} (reinvests the same $s$-slice as private
+  owners): a \emph{ratchet}. Private and public stocks earn a common
+  per-unit profit $\rho_t$, but the fund keeps its whole reinvestment
+  \emph{and} receives $\omega$ of private investment; once $\rho_t$ settles
+  at the fund's zero-growth point $\rho^{*} = \delta/s$, private capital
+  contracts at factor $1-\omega\delta$ per tick. The public share converges
+  to one, and aggregate capital and output \emph{grow} (the fund recycles
+  fully; nothing stalls in a hoard).
+\end{itemize}
 \end{proposition}
-\noindent\emph{Proof sketch.} For the tax: $\relu{\pi}$ enters
-\eqref{eq:kupdate} only through $s(1-\tau)\relu{\pi}$, so the small-$K$
-growth factor is $1-\delta+s(1-\tau)(ev-m)$ and the threshold algebra of
-Proposition~\ref{prop:knee} applies with $s \mapsto s(1-\tau)$. For the
-diversion: private and public stocks in a sector earn and pay at identical
-per-unit rates ($\mathrm{rev} \propto K$, upkeep $= mK$), so
-$K^{\mathrm{tot}} = K_i + K^{\mathrm{pub}}$ obeys the \emph{same} update as
-the undiverted stock and the split evolves as a linear share converging to
-$\omega$. \emph{This same-per-unit-rates condition is load-bearing}: fixed
-costs, scale economies, or differential public-fund efficiency would break
-the additivity, and the output-neutrality claim with it.
+\noindent\emph{Correction record (predictions-before-sweeps discipline).}
+The referee-accepted draft of this proposition claimed the diversion
+``leaves aggregate capital dynamics unchanged, output-neutral by
+construction,'' from a same-per-unit-rates additivity argument. The
+implementation falsified it in \emph{both} disposal designs --- dividend:
+aggregate $-18\%$; mirror: public share $0.999$, aggregate $\times 2.1$,
+output $+61\%$ (defaults, $\omega = 0.4$, single seed; E3 adds CIs) ---
+because additivity requires identical \emph{disposal}, not only identical
+earning rates, and any payout difference changes the demand path. We record
+the correction rather than retune: the two regimes are the finding.
+\emph{Proof sketch (tax, unchanged):} $\relu{\pi}$ enters
+\eqref{eq:kupdate} only through $s(1-\tau)\relu{\pi}$, so the threshold
+algebra of Proposition~\ref{prop:knee} applies with $s \mapsto s(1-\tau)$.
+\emph{Proof sketch (ratchet):} common $\rho_t$ from pro-rata revenue and
+identical upkeep; the fund's update is $(1-\delta) + s\rho_t$ on its own
+stock plus the $\omega$ inflow, the private update
+$(1-\delta) + (1-\omega)s\rho_t$; at the fund's stationary $\rho^{*} =
+\delta/s$ the private factor is $1 - \omega\delta < 1$.
 \begin{corollary}[Falsifiable asymmetry]\label{cor:boundary}
-Sweeping $\tau$ upward locates an output-cost boundary; sweeping $\omega$
-never does. The $\tau$ half is a genuine empirical claim (no closed form for
-the output effect); the $\omega$ half follows from
-Proposition~\ref{prop:defenses} and its sweep in E3 is an
-implementation-fidelity check, not new economics.
+Sweeping $\tau$ upward locates an eradication band and an output-cost
+boundary; sweeping $\omega$ locates neither --- under either fund design,
+$\omega$ never moves $e^{*}$ (private extinction under the mirror fund is
+competitive displacement by the fund, not upkeep failure, and the
+\emph{total} stock thrives). The $\tau$ half is a genuine empirical claim;
+the $\omega$ halves are checked in E3 against this proposition's two
+regimes.
 \end{corollary}
 
 \section{Experiments}\label{sec:experiments}

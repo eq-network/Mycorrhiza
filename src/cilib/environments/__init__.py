@@ -18,6 +18,7 @@ from .commons_harvest import build_commons_harvest
 from .governed_commons import build_governed_commons
 from .compute_economy import build_compute_economy
 from .io_economy import build_io_economy
+from .capital_economy import build_capital_economy
 from .task_economy import build_task_economy
 from .value_contagion import build_value_contagion
 from .influence_exchange import build_influence_exchange
@@ -29,6 +30,7 @@ REGISTRY = {
     "governed_commons": build_governed_commons,
     "compute_economy": build_compute_economy,
     "io_economy": build_io_economy,
+    "capital_economy": build_capital_economy,
     "task_economy": build_task_economy,
     "value_contagion": build_value_contagion,
     "influence_exchange": build_influence_exchange,

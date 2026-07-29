@@ -1,0 +1,74 @@
+"""
+Metrics for the Capital Economy — WP1's headline readouts.
+
+- ``ai_wealth_share``: owner-held (hoard + capital) over total (household wealth
+  + public capital + owner holdings). Public capital counts on the HUMAN side —
+  that is the entire point of the ownership mechanism (WP1 §3.2).
+- ``human_income_share``: household income over household income + owner profit.
+- ``output_late`` / ``output_peak``: the decoupling readouts (WP1 Prop. Decouple).
+- ``money_total``: the conservation series the probe checks (lab.analysis.conservation).
+"""
+from __future__ import annotations
+
+import jax.numpy as jnp
+
+
+def _late(series):
+    return series[3 * series.shape[0] // 4:]
+
+
+def money_series(trace, cfg):
+    """(T,) total money: pending household spend + all wealth + in-transit
+    capital-linked demand + inventories-in-process (1ᵀAx — the SFC stock the
+    probe itself forced into the invariant; measured drift is float32 rounding,
+    ~2e-6 over 300 ticks). Constant under every closure (WP1 Prop. 2/3)."""
+    from .state import technical_matrix
+    A = technical_matrix(cfg)
+    pending = (1.0 - cfg.sigma_s) * jnp.sum(trace["last_reward"], axis=-1)
+    wealth = jnp.sum(trace["wealth"], axis=-1)
+    transit = jnp.sum(trace["demand_k"], axis=-1)
+    inventories = jnp.sum(A @ trace["gross_output"][..., None], axis=(-2, -1))
+    return pending + wealth + transit + inventories
+
+
+def make_metrics(cfg):
+    """Trace -> scalar reductions (the harness vmaps these over seeds)."""
+    H, S = cfg.n_households, cfg.n_sectors
+    O0 = H + S     # first owner index
+
+    def _ai_share(trace):
+        own = jnp.sum(trace["wealth"][..., O0:] + trace["capital"][..., O0:], axis=-1)
+        human = jnp.sum(trace["wealth"][..., :H], axis=-1) \
+            + jnp.sum(trace["pub_cap"][..., H:H + S], axis=-1)
+        return own / jnp.maximum(own + human, 1e-8)
+
+    def ai_wealth_share(trace):
+        return jnp.mean(_late(_ai_share(trace)))
+
+    def human_income_share(trace):
+        hh = jnp.sum(trace["last_reward"][..., :H], axis=-1)
+        own = jnp.sum(trace["wealth"][..., O0:], axis=-1)
+        own_flow = jnp.diff(own, prepend=own[..., :1])
+        return jnp.mean(_late(hh / jnp.maximum(hh + jnp.maximum(own_flow, 0.0), 1e-8)))
+
+    def output_late(trace):
+        return jnp.mean(_late(jnp.sum(trace["gross_output"][..., H:H + S], axis=-1)))
+
+    def output_peak(trace):
+        return jnp.max(jnp.sum(trace["gross_output"][..., H:H + S], axis=-1))
+
+    def capital_late(trace):
+        return jnp.mean(_late(jnp.sum(trace["capital"][..., O0:], axis=-1)))
+
+    def money_drift(trace):
+        m = money_series(trace, cfg)
+        return jnp.max(jnp.abs(m - m[0])) / jnp.maximum(m[0], 1e-8)
+
+    return {
+        "ai_wealth_share": ai_wealth_share,
+        "human_income_share": human_income_share,
+        "output_late": output_late,
+        "output_peak": output_peak,
+        "capital_late": capital_late,
+        "money_drift": money_drift,
+    }

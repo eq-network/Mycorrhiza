@@ -29,6 +29,11 @@ class WP1Config:
     # E2 — the closure family
     recycles: Sequence[float] = (1.0, 0.75, 0.5, 0.25, 0.05)
 
+    # E5 — capability and the end-state human share (log-spaced; must span
+    # sub-threshold, coexistence, and collapse). Committed prediction:
+    # sector human share -> min(1, e*/e); no interior floor.
+    efficiencies_wide: Sequence[float] = (0.1, 0.3, 0.55, 1.0, 2.0, 4.0, 8.0, 16.0)
+
     # E3 — defenses
     tax_rates: Sequence[float] = (0.0, 0.2, 0.4, 0.6, 0.8)
     ownerships: Sequence[float] = (0.0, 0.4)

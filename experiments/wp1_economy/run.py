@@ -137,6 +137,29 @@ def main():
               f"Y={row['output_late']['point']:.1f}")
     results["E2"] = e2
 
+    # E5: capability vs end-state human share. Prediction committed BEFORE the
+    # sweep: sector human share -> min(1, e*_j/e) (steady-state balance
+    # s*pi = delta*K; first-order, people-only value-added weights).
+    estars = np.array([survival_threshold(CFG0, float(v)) for v in v_sect])
+    w = v_sect / v_sect.sum()
+    e5 = []
+    for e in cfg.efficiencies_wide:
+        h_pred = float(np.sum(w * np.minimum(1.0, estars / e)))
+        _, tr5 = make_env("capital_economy", efficiency=e).run_batch(
+            key, n_seeds=cfg.n_seeds, n_steps=cfg.T)
+        ktot = (np.asarray(tr5["capital"])[..., O0:]
+                + np.asarray(tr5["pub_cap"])[..., H:O0])
+        auto = e * ktot / (e * ktot + 1)
+        va5 = vc * np.asarray(tr5["gross_output"])[..., H:O0]
+        hs = ((1 - auto) * va5).sum(-1) / np.maximum(va5.sum(-1), 1e-8)
+        y5 = np.asarray(tr5["gross_output"])[..., H:O0].sum(-1)
+        T4 = 3 * hs.shape[1] // 4
+        row = with_cis({"human_share": hs[:, T4:].mean(1),
+                        "output_late": y5[:, T4:].mean(1)})
+        e5.append({"efficiency": e, "h_pred": h_pred, **row})
+        print(f"E5 e={e}: h={row['human_share']['point']:.3f} (pred {h_pred:.3f})")
+    results["E5"] = e5
+
     e3 = []
     for tau in cfg.tax_rates:
         mech = (scheduled(make_ai_revenue_tax(AIRevenueTaxConfig(tax_rate=tau)),

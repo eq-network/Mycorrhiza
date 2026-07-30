@@ -117,6 +117,27 @@ def fig_money(results):
     print("[saved] money.pdf")
 
 
+def fig_endstate(results):
+    """Paper Fig. 4 — end-state human share against capability; e*/e law."""
+    rows = results["E5"]
+    es = [r["efficiency"] for r in rows]
+    fig, ax = plt.subplots(figsize=(5.2, 3.2))
+    ax.plot(es, [r["h_pred"] for r in rows], "--", c="gray",
+            label="committed prediction $\\min(1, e^*/e)$")
+    ax.errorbar(es, [r["human_share"]["point"] for r in rows],
+                yerr=[[r["human_share"]["point"] - r["human_share"]["lo"] for r in rows],
+                      [r["human_share"]["hi"] - r["human_share"]["point"] for r in rows]],
+                marker="o", c="tab:green", label="measured")
+    ax.set_xscale("log")
+    ax.set_ylim(0, 1.05)
+    ax.set_xlabel("capital efficiency $e$ (log scale)")
+    ax.set_ylabel("late human share of income")
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIGS, "endstate.pdf"))
+    print("[saved] endstate.pdf")
+
+
 def fig_funds(results):
     """Appendix — the two public-fund designs (transfer vs ratchet)."""
     rows = results["E3"]
@@ -142,6 +163,7 @@ def main():
         results = json.load(fh)
     fig_headline(results)
     fig_money(results)
+    fig_endstate(results)
     fig_knee(results)
     fig_funds(results)
 

@@ -88,8 +88,8 @@ def main():
     env0 = make_env("capital_economy", first_arrival=10 ** 9)
     _, tr0 = env0.run(jr.PRNGKey(cfg.seed), n_steps=100)
     A = technical_matrix(CFG0)
-    v = np.asarray(jnp.maximum(1 - jnp.sum(A, axis=0), 0) * tr0["gross_output"][-1])
-    v_sect = v[H:O0]
+    vc = np.asarray(jnp.maximum(1 - jnp.sum(A, axis=0), 0))[H:O0]
+    v_sect = vc * np.asarray(tr0["gross_output"])[-1, H:O0]
     results = {"e_star_pred": {
         "v_measured": [float(x) for x in v_sect],
         "bands": {f"s={s}": {"machines": survival_threshold(
@@ -98,6 +98,26 @@ def main():
                                  CapitalEconomyConfig(reinvest_rate=s), float(v_sect.min()))}
                   for s in cfg.reinvest_rates},
     }}
+
+    # headline series (paper Fig. 2): baseline run vs the people-only reference
+    _, trh = make_env("capital_economy").run_batch(key, n_seeds=cfg.n_seeds,
+                                                   n_steps=cfg.T)
+    ktot = np.asarray(trh["capital"])[..., O0:] + np.asarray(trh["pub_cap"])[..., H:O0]
+    auto = CFG0.efficiency * ktot / (CFG0.efficiency * ktot + 1)
+    va = vc * np.asarray(trh["gross_output"])[..., H:O0]
+    prod = np.asarray(trh["gross_output"])[..., H:O0].sum(-1)
+    hshare = ((1 - auto) * va).sum(-1) / np.maximum(va.sum(-1), 1e-8)
+    results["headline"] = {
+        "production": prod.mean(0).round(4).tolist(),
+        "production_sd": prod.std(0).round(4).tolist(),
+        "human_share": hshare.mean(0).round(4).tolist(),
+        "human_share_sd": hshare.std(0).round(4).tolist(),
+        "people_only_production": float(
+            np.asarray(tr0["gross_output"])[-20:, H:O0].sum(-1).mean()),
+        "first_arrival": CFG0.first_arrival,
+    }
+    print(f"headline: Y {prod.mean(0)[0]:.1f} -> {prod.mean(0)[-1]:.1f}, "
+          f"human share {hshare.mean(0)[0]:.2f} -> {hshare.mean(0)[-1]:.2f}")
 
     e1 = []
     for s in cfg.reinvest_rates:

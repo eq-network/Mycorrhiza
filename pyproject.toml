@@ -17,6 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 cuda = ["jax[cuda12]>=0.4.20"]
+export = ["jsonschema>=4.17"]      # bundle validation on write (experiments/gd_bundles)
 full = [
     "jax[cuda12]>=0.4.20",
     "seaborn>=0.12.0",

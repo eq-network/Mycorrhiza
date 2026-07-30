@@ -22,7 +22,10 @@ from .capital_economy import build_capital_economy
 from .task_economy import build_task_economy
 from .value_contagion import build_value_contagion
 from .influence_exchange import build_influence_exchange
+from .delegative_polity import build_delegative_polity
 from .coupled_society import build_coupled_society
+from .ledger_society import build_ledger_society
+from .suites import SUITES, GRADUAL_DISEMPOWERMENT   # named readings of this catalog
 
 # name -> builder ((**cfg) -> EnvSpec).
 REGISTRY = {
@@ -34,7 +37,9 @@ REGISTRY = {
     "task_economy": build_task_economy,
     "value_contagion": build_value_contagion,
     "influence_exchange": build_influence_exchange,
+    "delegative_polity": build_delegative_polity,
     "coupled_society": build_coupled_society,
+    "ledger_society": build_ledger_society,
 }
 
 
@@ -51,4 +56,5 @@ def list_envs():
 
 
 __all__ = ["EnvSpec", "GameSpec", "close", "validate_reads", "MetricFn",
-           "commons_metrics", "REGISTRY", "make_env", "list_envs"]
+           "commons_metrics", "REGISTRY", "make_env", "list_envs",
+           "SUITES", "GRADUAL_DISEMPOWERMENT"]

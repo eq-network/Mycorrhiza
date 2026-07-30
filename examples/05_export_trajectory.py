@@ -22,7 +22,6 @@ import os
 import tempfile
 
 import jax.random as jr
-import numpy as np
 
 from cilib.core.schedule import ScheduleSpec, apply_schedule
 from cilib.environments import (
@@ -30,6 +29,7 @@ from cilib.environments import (
     make_env, value_contagion,
 )
 from cilib.environments.system_graph import system_graph
+from cilib.environments.webexport import trajectory_payload
 from cilib.mechanisms import (
     REGISTRY as MECHANISMS,
     AIRevenueTaxConfig, EnforcedAITaxConfig, InfluenceCapConfig,
@@ -104,43 +104,18 @@ def export(env_name: str, condition: str, n_steps: int, seed: int) -> dict:
     env = make_env(env_name, mechanisms=mechs, **overrides)
     finals, trace = env.run(jr.PRNGKey(seed), n_steps)
 
-    payload = {"global": {}, "node": {}, "static": {}}
-    n_agents = None
-    for name, arr in trace.items():
-        arr = np.asarray(arr)
-        if arr.ndim == 1:
-            payload["global"][name] = arr.tolist()
-        elif arr.ndim == 2:
-            n_agents = arr.shape[1]
-            if bool(np.all(arr == arr[0])):
-                payload["static"][name] = arr[0].tolist()
-            else:
-                payload["node"][name] = arr.ravel().tolist()   # row-major t*N+i
-        else:
-            raise ValueError(f"trace field {name!r} has unsupported shape {arr.shape}")
-
-    if finals.adj_matrices:      # network games: static per run, read from finals
-        # densify at the boundary: the wire contract is a flat row-major N*N array
-        # whatever the in-engine representation. Off the hot path (once per run).
-        payload["adj"] = {
-            name: np.asarray(arr.todense() if hasattr(arr, "todense") else arr)
-                    .ravel().tolist()
-            for name, arr in finals.adj_matrices.items()}
-
     mod = ENV_MODULES.get(env_name)
+    system = None
     if mod is not None:          # the pipeline DAG read as communication
-        payload["system"] = system_graph(mod.build_steps(env.config, mechs),
-                                         mod.make_state(env.config, jr.PRNGKey(seed)))
+        system = system_graph(mod.build_steps(env.config, mechs),
+                              mod.make_state(env.config, jr.PRNGKey(seed)))
 
-    payload["meta"] = {
-        "gameId": env_name,
-        "T": n_steps,
-        "N": n_agents,
-        "seed": seed,
-        "params": {**dataclasses.asdict(env.config), "condition": condition},
-        "scalars": {k: float(v) for k, v in env.evaluate(trace).items()},
-    }
-    return payload
+    # the generic mapping lives in cilib.environments.webexport (shared with the
+    # sweep-bundle exporter); defaults here reproduce the historical output
+    return trajectory_payload(
+        trace, finals, game_id=env_name, n_steps=n_steps, seed=seed,
+        params={**dataclasses.asdict(env.config), "condition": condition},
+        scalars=env.evaluate(trace), system=system)
 
 
 if __name__ == "__main__":

@@ -111,3 +111,17 @@ Mechanical, no per-environment code:
 - Parity eyeballing: export at the browser's defaults and compare trajectory
   shape against the in-browser run (`prototypes/playground.html`, seed shown
   in its UI).
+
+## Producers (additive note, 2026-07-30 — no version change)
+
+The generic trace→payload mapping lives in `cilib.environments.webexport`
+(`trajectory_payload`); `examples/05_export_trajectory.py` and the sweep-bundle
+exporter (`experiments/gd_bundles/`, per `docs/dial-lattice-design.md`) both emit
+through it. Two producer options, both within v1.1:
+
+- A producer MAY append **derived (T,) series** (engine-side reductions of the
+  trace, e.g. `human_income_share`) as additional `global` fields — rule 1's
+  "field names are engine trace names" extends to these; they are still
+  engine-computed values, never view-side math.
+- A producer MAY omit `adj` (it is already optional) and MAY whitelist trace
+  fields; whatever ships must obey rules 1–3 unchanged.

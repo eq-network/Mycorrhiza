@@ -172,6 +172,16 @@ def test_decoupling_concentration_robust_output_closure_dependent():
     assert y_r0 < 0.8 * y_ppl                                  # winds down at r~0
 
 
+def test_resource_manifest_covers_state_exactly():
+    # every named quantity in the state is typed in resources.py, and nothing
+    # is typed that does not exist — the manifest cannot silently drift
+    from cilib.environments.capital_economy.resources import RESOURCES
+    state = make_state(CFG, KEY)
+    in_state = (set(state.node_attrs) | set(state.global_attrs)
+                | set(state.adj_matrices))
+    assert set(RESOURCES) == in_state
+
+
 def _labor_share_late(tr, cfg):
     H, S = cfg.n_households, cfg.n_sectors
     va = _sector_va(tr, cfg)[:, H:H + S]                       # (T, S)

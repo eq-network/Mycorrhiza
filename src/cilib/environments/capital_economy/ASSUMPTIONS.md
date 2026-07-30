@@ -51,6 +51,11 @@ the defense pair is `mechanisms.fiscal.make_ai_revenue_tax` (verbatim reuse —
 taxable base = positive profit in `capital_income`) and the `ownership` (ω)
 config dial (title diversion; output-neutral by construction, WP1 Prop. 4).
 
+**5b. Resources.** Every named quantity in the state is typed in
+`resources.py` (kind / substance / carrier / role in the money invariant) —
+the environment's side of the type contract; a ladder rung keeps it exactly
+in sync with the state.
+
 **6. Lineage.** Forked from `io_economy` (2026-07-29, register R4) for the WP1
 paper (Obsidian vault): replaced the exogenous recipe-editing schedule and the
 stockless AI margin with owned capital stocks bearing upkeep; repaired the

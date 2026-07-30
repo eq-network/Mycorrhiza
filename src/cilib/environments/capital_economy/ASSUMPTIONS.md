@@ -31,7 +31,11 @@ conserved-loop wealth/income ratio `σ_s/σ_d` (WP1 Prop. 2); the Gibrat-style
 rich-get-richer mechanism of `compute_economy`'s ladder reappears as pro-rata
 compounding above threshold.
 
-**4. The dial.** `efficiency` (e) against the **pre-registered survival threshold
+**4. The dial.** `efficiency` (e) evolves by the capability-growth law
+`e ← min(e_ceiling, e·(1 + growth_rate + rsi_strength·e))` — static baseline
+(0, 0), first-order general improvement (g anchored to METR/Epoch doubling-time
+*ranges* under a tick≈month reading, never point defaults), second-order RSI
+(γ, arbitrary-but-swept). Initial `efficiency` (e) against the **pre-registered survival threshold
 `e* = (δ/s + m)/v`** (WP1 Prop. 1, committed before any sweep ran; exported as
 `survival_threshold()` so tests and experiments evaluate the paper's expression):
 below the knee automation capital dies whatever its starting stock; above it,

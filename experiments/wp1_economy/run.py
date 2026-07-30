@@ -160,6 +160,31 @@ def main():
         print(f"E5 e={e}: h={row['human_share']['point']:.3f} (pred {h_pred:.3f})")
     results["E5"] = e5
 
+    # E6: capability growth — trajectory of the human share per growth model.
+    # The traced (time-varying) efficiency feeds the automation share directly.
+    e6 = []
+    for label, g, gamma in cfg.growth_models:
+        _, tr6 = make_env("capital_economy", growth_rate=g,
+                          rsi_strength=gamma).run_batch(
+            key, n_seeds=cfg.n_seeds, n_steps=cfg.T)
+        ktot = (np.asarray(tr6["capital"])[..., O0:]
+                + np.asarray(tr6["pub_cap"])[..., H:O0])
+        e_t = np.asarray(tr6["efficiency"])[..., None]          # (seeds, T, 1)
+        auto = e_t * ktot / (e_t * ktot + 1)
+        va6 = vc * np.asarray(tr6["gross_output"])[..., H:O0]
+        hs = ((1 - auto) * va6).sum(-1) / np.maximum(va6.sum(-1), 1e-8)
+        T4 = 3 * hs.shape[1] // 4
+        e6.append({
+            "label": label, "g": g, "gamma": gamma,
+            "human_share_t": hs.mean(0).round(4).tolist(),
+            "efficiency_t": np.asarray(tr6["efficiency"]).mean(0).round(3).tolist(),
+            **with_cis({"human_share": hs[:, T4:].mean(1)}),
+        })
+        print(f"E6 {label} (g={g}, gamma={gamma}): "
+              f"h_late={e6[-1]['human_share']['point']:.3f} "
+              f"e_late={e6[-1]['efficiency_t'][-1]:.1f}")
+    results["E6"] = e6
+
     e3 = []
     for tau in cfg.tax_rates:
         mech = (scheduled(make_ai_revenue_tax(AIRevenueTaxConfig(tax_rate=tau)),

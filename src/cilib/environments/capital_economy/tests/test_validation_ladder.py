@@ -170,3 +170,35 @@ def test_decoupling_concentration_robust_output_closure_dependent():
     assert float(ai_share(tr_r0)[-1]) > 0.2                    # ...and at r~0
     assert y_r1 > 0.9 * y_ppl                                  # output holds at r=1
     assert y_r0 < 0.8 * y_ppl                                  # winds down at r~0
+
+
+def _labor_share_late(tr, cfg):
+    H, S = cfg.n_households, cfg.n_sectors
+    va = _sector_va(tr, cfg)[:, H:H + S]                       # (T, S)
+    ktot = tr["capital"][:, H + S:] + tr["pub_cap"][:, H:H + S]
+    a = tr["efficiency"][:, None] * ktot / (tr["efficiency"][:, None] * ktot + 1.0)
+    h = jnp.sum((1.0 - a) * va, axis=-1) / jnp.maximum(jnp.sum(va, axis=-1), 1e-8)
+    return float(jnp.mean(h[-50:]))
+
+
+def test_capability_growth_static_exact_and_growth_collapses_share():
+    # growth off: e stays exactly at its initial value (limit equivalence)
+    _, tr_static = _run()
+    assert float(jnp.max(jnp.abs(tr_static["efficiency"] - CFG.efficiency))) == 0.0
+
+    # first-order growth: e rises and the human share falls below the static
+    # end state. Second-order (RSI) is a SPEED claim: it crosses any capability
+    # level sooner than pure exponential (at matched horizons past the ceiling
+    # the shares need not be ordered — both have collapsed). Money is conserved
+    # under growth (a moving e only reallocates value-added shares).
+    _, tr_exp = _run(growth_rate=0.02)
+    _, tr_rsi = _run(growth_rate=0.02, rsi_strength=0.02)
+    assert float(tr_exp["efficiency"][-1]) > 2.0 * CFG.efficiency
+    level = 8.0 * CFG.efficiency
+    t_exp = int(jnp.argmax(tr_exp["efficiency"] > level))
+    t_rsi = int(jnp.argmax(tr_rsi["efficiency"] > level))
+    assert 0 < t_rsi < t_exp                                   # RSI gets there sooner
+    h_static = _labor_share_late(tr_static, CFG)
+    assert _labor_share_late(tr_exp, CFG) < h_static
+    assert _labor_share_late(tr_rsi, CFG) < h_static
+    assert drift(money_series(tr_rsi, CapitalEconomyConfig())) < 1e-3

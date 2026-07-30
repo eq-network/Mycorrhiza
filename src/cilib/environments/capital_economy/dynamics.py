@@ -2,7 +2,8 @@
 Substrate dynamics for the Capital Economy — WP1's referee-accepted rules, in
 program order (``compile_pipeline`` derives the DAG from declared reads/writes):
 
-    spend -> arrive -> rebalance -> distribute -> [mechanism slot] -> accumulate -> step
+    spend -> arrive -> rebalance -> distribute -> [mechanism slot] -> accumulate
+        -> grow -> step
 
 Lag structure mirrors ``io_economy``: ``spend`` reads LAST tick's income and
 wealth; ``rebalance`` reads LAST tick's capital-linked demand (``demand_k``,
@@ -103,7 +104,7 @@ def make_distribute(cfg: CapitalEconomyConfig):
     H, S = cfg.n_households, cfg.n_sectors
 
     @transform(reads=["gross_output", "technical", "capital", "pub_cap", "active",
-                      "home_sector", "wealth"],
+                      "home_sector", "wealth", "efficiency"],
                writes=["last_reward", "capital_income", "capital", "pub_cap",
                        "upkeep_paid"])
     def distribute(state: GraphState) -> GraphState:
@@ -118,7 +119,7 @@ def make_distribute(cfg: CapitalEconomyConfig):
         K_own = state.node_attrs["capital"] * state.node_attrs["active"]
         sec_priv = onehot.T @ K_own                                      # (N,) sector slots
         sec_tot = sec_priv + state.node_attrs["pub_cap"]
-        capacity = cfg.efficiency * sec_tot
+        capacity = state.global_attrs["efficiency"] * sec_tot
         a_share = capacity / (capacity + 1.0) * is_sector                # a_j
 
         labor_pay = jnp.sum((1.0 - a_share) * va) / H
@@ -211,6 +212,21 @@ def make_accumulate(cfg: CapitalEconomyConfig):
     return accumulate
 
 
+# --- capability growth: e <- min(cap, e·(1 + g + γ·e)), from first arrival --------
+# The initial ``efficiency`` is capability AT DEPLOYMENT; growth runs once AI
+# capital exists (gated by step, jnp.where — no data-dependent control flow).
+
+def make_grow(cfg: CapitalEconomyConfig):
+    @transform(reads=["efficiency", "step"], writes=["efficiency"])
+    def grow(state: GraphState) -> GraphState:
+        e = state.global_attrs["efficiency"]
+        grown = jnp.minimum(e * (1.0 + cfg.growth_rate + cfg.rsi_strength * e),
+                            cfg.e_ceiling)
+        live = (state.global_attrs["step"] >= cfg.first_arrival).astype(jnp.float32)
+        return state.update_global_attr("efficiency", live * grown + (1.0 - live) * e)
+    return grow
+
+
 # --- bookkeeping ------------------------------------------------------------------
 
 def make_step_counter(cfg: CapitalEconomyConfig):
@@ -229,7 +245,7 @@ def build_steps(cfg: CapitalEconomyConfig,
     steps = [make_spend(cfg), make_arrive(cfg), make_rebalance(cfg),
              make_distribute(cfg)]
     steps.extend(mechanism_transforms)
-    steps.extend([make_accumulate(cfg), make_step_counter(cfg)])
+    steps.extend([make_accumulate(cfg), make_grow(cfg), make_step_counter(cfg)])
     return steps
 
 
@@ -260,4 +276,5 @@ def default_trace(state: GraphState):
         "demand_h": state.node_attrs["demand_h"],
         "demand_k": state.node_attrs["demand_k"],
         "active": state.node_attrs["active"],
+        "efficiency": state.global_attrs["efficiency"],
     }

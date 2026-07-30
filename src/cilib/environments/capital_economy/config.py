@@ -49,10 +49,21 @@ class CapitalEconomyConfig:
     sigma_d: float = 0.03        # wealth drawdown (closes the no-AI loop exactly)
 
     # capital physics (the knee lives in these three plus e)
-    efficiency: float = 0.55     # e — capacity per unit K (the knee axis)
+    efficiency: float = 0.55     # e — capacity per unit K (the knee axis); INITIAL
+                                 # value: e evolves by the growth law below
     maintenance: float = 1.5     # m — upkeep per unit K, paid out of revenue only
     reinvest_rate: float = 0.5   # s
     depreciation: float = 0.05   # delta
+
+    # capability growth: e <- min(e_ceiling, e·(1 + g + γ·e)) once per tick.
+    # (0,0) = static (the WP1 baseline); (g,0) = first-order general improvement
+    # (constant doubling time — anchor to METR/Epoch RANGES, never defaults);
+    # (g,γ>0) = second-order recursive self-improvement (doubling time shrinks
+    # with capability). The end-state law h* ≈ e*/e then makes the growth type
+    # the shape of the collapse: none / exponential glide / finite-time cliff.
+    growth_rate: float = 0.0     # g — first-order improvement per tick
+    rsi_strength: float = 0.0    # γ — second-order (RSI) term, scales with e
+    e_ceiling: float = 64.0      # numerical cap on e (float32 hygiene; stated in paper)
 
     # arrivals (exogenous entry; adoption stays task_economy's job)
     first_arrival: int = 40

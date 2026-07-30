@@ -138,6 +138,28 @@ def fig_endstate(results):
     print("[saved] endstate.pdf")
 
 
+def fig_growth(results):
+    """Paper Fig. 5 — collapse trajectories under the capability-growth models."""
+    styles = {"static": ("tab:green", "-"), "slow": ("tab:blue", "-"),
+              "central": ("tab:orange", "-"), "fast": ("tab:red", "-"),
+              "rsi": ("tab:purple", "--")}
+    fig, ax = plt.subplots(figsize=(5.6, 3.2))
+    for row in results["E6"]:
+        c, ls = styles[row["label"]]
+        lab = row["label"] if row["gamma"] == 0 else "RSI (second-order)"
+        if row["g"] > 0 and row["gamma"] == 0:
+            lab = f"{row['label']} (g={row['g']})"
+        ax.plot(range(len(row["human_share_t"])), row["human_share_t"],
+                ls, c=c, label=lab)
+    ax.axvline(results["headline"]["first_arrival"], ls=":", c="black", lw=1)
+    ax.set_xlabel("time"); ax.set_ylabel("human share of income")
+    ax.set_ylim(0, 1.05)
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIGS, "growth.pdf"))
+    print("[saved] growth.pdf")
+
+
 def fig_funds(results):
     """Appendix — the two public-fund designs (transfer vs ratchet)."""
     rows = results["E3"]
@@ -164,6 +186,7 @@ def main():
     fig_headline(results)
     fig_money(results)
     fig_endstate(results)
+    fig_growth(results)
     fig_knee(results)
     fig_funds(results)
 

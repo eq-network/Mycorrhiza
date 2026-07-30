@@ -85,6 +85,7 @@ def make_state(cfg: CapitalEconomyConfig, key) -> GraphState:
         "rng_key": key,
         "step": jnp.array(0, dtype=jnp.int32),
         "upkeep_paid": jnp.array(0.0, dtype=jnp.float32),
+        "efficiency": jnp.array(cfg.efficiency, dtype=jnp.float32),
     }
     return GraphState(
         node_types=node_types,

@@ -34,6 +34,20 @@ class WP1Config:
     # sector human share -> min(1, e*/e); no interior floor.
     efficiencies_wide: Sequence[float] = (0.1, 0.3, 0.55, 1.0, 2.0, 4.0, 8.0, 16.0)
 
+    # E6 — capability growth models (label, g, gamma) under the tick~month
+    # reading. g anchored to RANGES only (never defaults): capability-doubling
+    # 5.5-7.5 mo full-trend / ~3 mo post-2024 (METR, kwa2025tasks + TH1.1);
+    # algorithmic-efficiency doubling 5-14 mo (ho2024algorithmic); compute
+    # doubling 4.3-9.0 mo (sevilla2022compute). g = ln2/doubling. gamma is
+    # arbitrary-but-swept (second-order RSI bracket).
+    growth_models: Sequence[tuple] = (
+        ("static", 0.0, 0.0),
+        ("slow", 0.05, 0.0),        # ~14 mo doubling (algorithmic lower edge)
+        ("central", 0.10, 0.0),     # ~7 mo doubling (METR full trend)
+        ("fast", 0.23, 0.0),        # ~3 mo doubling (METR post-2024 point)
+        ("rsi", 0.05, 0.05),        # second-order: rate grows with capability
+    )
+
     # E3 — defenses
     tax_rates: Sequence[float] = (0.0, 0.2, 0.4, 0.6, 0.8)
     ownerships: Sequence[float] = (0.0, 0.4)

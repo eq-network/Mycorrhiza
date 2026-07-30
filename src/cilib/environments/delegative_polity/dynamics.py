@@ -54,6 +54,7 @@ from cilib.core.category import Transform, transform
 from cilib.core.pipeline import compile_pipeline
 from cilib.mechanisms.democracy import PowerWeightedVoteConfig, make_power_weighted_vote
 
+from ..ledger import top_target
 from .config import DelegativePolityConfig
 
 
@@ -249,12 +250,14 @@ def build_step_fn(cfg: DelegativePolityConfig,
 
 def default_trace(state: GraphState):
     """Raw per-step readouts; the delegation matrix is (N, N) and evolves — read
-    its final form from ``finals.adj_matrices``, not the trace. ``ideal`` is
+    its final form from ``finals.adj_matrices``, not the trace (its dominant
+    edges ship as the O(N) ``top_delegate_target`` index series). ``ideal`` is
     static but traced so metrics can compute the citizen median per seed."""
     return {
         "influence": state.node_attrs["influence"],
         "wealth": state.node_attrs["wealth"],
         "ideal": state.node_attrs["ideal"],
+        "top_delegate_target": top_target(state.adj_matrices["delegation"]),
         "policy_target": state.global_attrs["policy_target"],
         "enforcement": state.global_attrs["enforcement"],
         "redelegation_friction": state.global_attrs["redelegation_friction"],

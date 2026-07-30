@@ -5,11 +5,20 @@ A ledger is an ordinary evolving field with a declared conservation contract:
 node stocks change only by named sources minus named sinks; adjacency ledgers
 are row-stochastic (per-row conservation of a share). These helpers turn the
 contract into one-line ladder rungs; they are test utilities, never runtime
-checks (the pipeline stays JIT-clean).
+checks (the pipeline stays JIT-clean) — except ``top_target``, a scan-safe
+trace readout shared by every env that traces an adjacency ledger's dominant
+edges (O(N) ints per tick, so the O(N²) ledger itself stays out of the trace).
 """
 from __future__ import annotations
 
 import jax.numpy as jnp
+
+
+def top_target(adj):
+    """Per-row argmax neighbor with the self column masked out — the self-weight
+    floor would otherwise win most rows."""
+    masked = jnp.where(jnp.eye(adj.shape[0], dtype=bool), -jnp.inf, adj)
+    return jnp.argmax(masked, axis=1).astype(jnp.int32)
 
 
 def stock_conservation_error(wealth_before, wealth_after, minted, sunk):

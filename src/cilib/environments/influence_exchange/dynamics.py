@@ -41,6 +41,7 @@ from cilib.core.graph import GraphState
 from cilib.core.category import Transform, transform
 from cilib.core.pipeline import compile_pipeline
 
+from ..ledger import top_target
 from .config import InfluenceExchangeConfig
 
 
@@ -162,10 +163,12 @@ def build_step_fn(cfg: InfluenceExchangeConfig,
 
 def default_trace(state: GraphState):
     """Raw per-step readouts; the listening matrix is (N, N) and evolves — read
-    its final form from ``finals.adj_matrices``, not the trace."""
+    its final form from ``finals.adj_matrices``, not the trace (its dominant
+    edges ship as the O(N) ``top_listen_target`` index series)."""
     return {
         "opinion": state.node_attrs["opinion"],
         "influence": state.node_attrs["influence"],
         "amplification": state.node_attrs["amplification"],
         "cap_scale": state.node_attrs["cap_scale"],
+        "top_listen_target": top_target(state.adj_matrices["listening"]),
     }

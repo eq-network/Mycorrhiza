@@ -107,18 +107,19 @@ BUNDLES: Tuple[BundleSpec, ...] = (
         ),
         metrics=(
             Metric("human_sector_share", "human share of value added", "up_good"),
-            # human_income_share re-added for v2: degenerate (1.0) at e <= 0.9,
-            # the wide grid reaches e = 16 — drop again if it stays flat there
-            Metric("human_income_share", "human income share", "up_good"),
+            # human_income_share dropped AGAIN (probed on the v2 lattice
+            # 2026-07-30: min 0.9992 over all 160 cells, still a dead lane
+            # even at e = 16 — the flow measure barely moves)
             Metric("ai_wealth_share", "AI wealth share", "down_good"),
             Metric("output_late", "late output", "neutral"),
             Metric("output_peak", "peak output", "neutral"),
             Metric("capital_late", "late AI capital", "neutral"),
             Metric("money_drift", "money conservation drift", "neutral"),
         ),
-        whitelist=("capital", "wealth", "efficiency"),
-        derived=("human_sector_share", "human_income_share", "ai_wealth_share",
-                 "output_total"),
+        # gross_output/last_reward feed the flow scene (wages, production)
+        whitelist=("capital", "wealth", "efficiency", "gross_output",
+                   "last_reward"),
+        derived=("human_sector_share", "ai_wealth_share", "output_total"),
         playback=_subgrid((0, 2, 4, 7), (1, 4), (0, 2)),
         notes=("WP1 regimes grid (efficiencies_wide x recycles imported from "
                "experiments/wp1_economy/config.py) + the ownership (omega) "
@@ -162,7 +163,7 @@ BUNDLES: Tuple[BundleSpec, ...] = (
             Metric("centralization", "centralization", "down_good"),
             Metric("consensus_error", "consensus error", "down_good"),
         ),
-        whitelist=("influence",),
+        whitelist=("influence", "top_listen_target"),
         derived=("human_influence_share", "top_influence_share",
                  "opinion_p10", "opinion_p50", "opinion_p90"),
         playback=_subgrid((0, 2, 5), (0, 3, 5), (0, 3)),
@@ -208,7 +209,7 @@ BUNDLES: Tuple[BundleSpec, ...] = (
             Metric("wealth_gini", "citizen wealth Gini", "down_good"),
         ),
         whitelist=("influence", "ideal", "policy_target", "enforcement",
-                   "redelegation_friction"),
+                   "redelegation_friction", "top_delegate_target"),
         derived=("human_power_share", "top_delegate_share"),
         playback=_subgrid((0, 2, 4, 6), (0, 3), (0, 2, 3)),
         notes=("WP3 E1 knee grid (advantage x churn) + the lock-in dial "

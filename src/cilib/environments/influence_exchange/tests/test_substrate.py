@@ -40,6 +40,19 @@ def test_registered_and_config_overrides():
     assert env.config.amplification == 3.0
 
 
+def test_top_listen_target_trace_matches_final_ledger():
+    env = make_env("influence_exchange")
+    finals, trace = env.run(KEY, 40)
+    W = finals.adj_matrices["listening"]
+    N = W.shape[-1]
+    idx = trace["top_listen_target"]                      # (T, N)
+    assert idx.dtype == jnp.int32
+    assert bool(jnp.all((idx >= 0) & (idx < N)))
+    assert bool(jnp.all(idx != jnp.arange(N)[None, :]))   # self masked out
+    masked = jnp.where(jnp.eye(N, dtype=bool), -jnp.inf, W)
+    assert bool(jnp.all(idx[-1] == jnp.argmax(masked, axis=-1)))
+
+
 def test_initial_listening_is_row_stochastic():
     cfg = InfluenceExchangeConfig()
     state = make_state(cfg, KEY)

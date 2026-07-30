@@ -60,6 +60,19 @@ def test_initial_delegation_is_row_stochastic():
     np.testing.assert_allclose(np.asarray(jnp.diag(D)), cfg.self_weight, atol=1e-6)
 
 
+def test_top_delegate_target_trace_matches_final_ledger():
+    env = make_env("delegative_polity")
+    finals, trace = env.run(KEY, 40)
+    D = finals.adj_matrices["delegation"]
+    N = D.shape[-1]
+    idx = trace["top_delegate_target"]                    # (T, N)
+    assert idx.dtype == jnp.int32
+    assert bool(jnp.all((idx >= 0) & (idx < N)))
+    assert bool(jnp.all(idx != jnp.arange(N)[None, :]))   # self masked out
+    masked = jnp.where(jnp.eye(N, dtype=bool), -jnp.inf, D)
+    assert bool(jnp.all(idx[-1] == jnp.argmax(masked, axis=-1)))
+
+
 def test_row_stochastic_invariant_under_jit_with_defenses():
     """Every transform (substrate + both political mechanisms) preserves
     row-stochasticity, under jit, for many rounds."""

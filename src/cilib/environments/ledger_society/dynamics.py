@@ -39,6 +39,7 @@ from cilib.core.pipeline import compile_pipeline
 from cilib.mechanisms.democracy import PowerWeightedVoteConfig, make_power_weighted_vote
 
 from ..attachment import preferential_reallocation
+from ..ledger import top_target
 from .config import LedgerSocietyConfig
 
 
@@ -303,14 +304,6 @@ def build_step_fn(cfg: LedgerSocietyConfig,
     return step_fn
 
 
-def _top_target(adj):
-    """Per-row argmax neighbor with the self column masked out — the self-weight
-    floor would otherwise win most rows. O(N) ints per tick, so the adjacency
-    ledgers can stay out of the trace while their dominant edges ship."""
-    masked = jnp.where(jnp.eye(adj.shape[0], dtype=bool), -jnp.inf, adj)
-    return jnp.argmax(masked, axis=1).astype(jnp.int32)
-
-
 def default_trace(state: GraphState):
     """Per-tick readouts across all three ledgers plus the channel flows
     (N ≈ 26 — small enough to keep raw; adjacency ledgers stay out of the trace
@@ -329,8 +322,8 @@ def default_trace(state: GraphState):
         "listen_influence": state.node_attrs["listen_influence"],
         "influence": state.node_attrs["influence"],
         "ideal": state.node_attrs["ideal"],
-        "top_listen_target": _top_target(state.adj_matrices["listening"]),
-        "top_delegate_target": _top_target(state.adj_matrices["delegation"]),
+        "top_listen_target": top_target(state.adj_matrices["listening"]),
+        "top_delegate_target": top_target(state.adj_matrices["delegation"]),
         "efficiency": state.global_attrs["efficiency"],
         "policy_target": state.global_attrs["policy_target"],
         "enforcement": state.global_attrs["enforcement"],

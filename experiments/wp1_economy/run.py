@@ -3,7 +3,7 @@
     python -m experiments.wp1_economy.run
 
 Every metric row carries bootstrap CIs over the shared seed batch. The
-pre-registered e* band (papers/wp1-economy, Prop. 1) is evaluated from the
+pre-registered e* band (WP1 paper, Prop. 1) is evaluated from the
 measured people-only value added and recorded alongside E1 — a mismatch is a
 reported result, not something to retune (main.tex §5's discipline).
 """

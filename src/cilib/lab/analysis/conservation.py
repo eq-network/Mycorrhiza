@@ -1,7 +1,7 @@
 """
 The global stock-flow conservation probe (WP1 Prop. 3's instrument).
 
-Rationale (papers/wp1-economy/main.tex §3.1): two prototype bugs — a savings
+Rationale (WP1 paper §3.1): two prototype bugs — a savings
 flow with no return path, and consumption paid from no stock — each produced a
 qualitatively wrong economy and were caught only by a *global* conservation
 check. Proposition 3 explains why the global probe suffices: if every transform

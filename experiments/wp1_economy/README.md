@@ -1,8 +1,9 @@
 # WP1 experiments — the knee, the decoupling, the defenses
 
-The sweep suite behind `papers/wp1-economy/` (referee-gated spec; predictions
+The sweep suite behind the WP1 paper (referee-gated spec; predictions
 committed before these runs — `results.json` records the pre-registered e*
-band next to E1).
+band next to E1). The paper itself lives in the Obsidian vault
+(`Research/Projects/CI Library/papers/wp1-economy/`), not this repo.
 
 | Sweep | Axis | Backs |
 |---|---|---|
@@ -12,7 +13,7 @@ band next to E1).
 
 ```bash
 python -m experiments.wp1_economy.run      # -> results.json (bootstrap CIs, 8 seeds)
-python -m experiments.wp1_economy.figures  # -> ../../papers/wp1-economy/figures/*.pdf
+python -m experiments.wp1_economy.figures  # -> <vault>/papers/wp1-economy/figures/*.pdf
 ```
 
 Headline numbers land in the paper's results section; anything that contradicts

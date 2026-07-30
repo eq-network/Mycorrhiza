@@ -1,6 +1,6 @@
 """
 Config for the Capital Economy substrate — the WP1 fork of ``io_economy``
-(papers/wp1-economy/main.tex §3, referee-accepted 2026-07-29).
+(WP1 paper §3, referee-accepted 2026-07-29; the paper lives in the Obsidian vault).
 
 What forked and why (ASSUMPTIONS.md field 6 has the card version): ``io_economy``
 automates by an *exogenous schedule* editing recipes, and its AI actor is a sector

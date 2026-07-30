@@ -2,7 +2,8 @@
 
     python -m experiments.wp1_economy.figures
 
-Writes into papers/wp1-economy/figures/ (the paper's figure source of truth).
+Writes into the WP1 paper's figures/ dir. The paper lives in the Obsidian vault,
+not this repo (writing stays out of the codebase); this path is the one seam.
 """
 from __future__ import annotations
 
@@ -14,7 +15,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 HERE = os.path.dirname(__file__)
-FIGS = os.path.normpath(os.path.join(HERE, "..", "..", "papers", "wp1-economy", "figures"))
+FIGS = os.path.join(
+    os.path.expanduser("~"), "Documents", "Productivity", "Obsidian",
+    "Research", "Projects", "CI Library", "papers", "wp1-economy", "figures")
 
 
 def band(ax, results, s):

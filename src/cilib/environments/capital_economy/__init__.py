@@ -3,7 +3,8 @@ Capital Economy — automation capital that must out-earn its upkeep.
 
 Register entry R4, forked from ``io_economy`` per docs/model-register-design.md
 §7 (dynamics fork; this directory carries its own ``ASSUMPTIONS.md``). Paper:
-``papers/wp1-economy/`` — the spec was referee-gated before this implementation
+WP1, in the Obsidian vault (``Research/Projects/CI Library/papers/wp1-economy/``,
+outside this repo) — the spec was referee-gated before this implementation
 (13 defects raised and resolved; the survival threshold e* = (δ/s + m)/v was
 committed as a prediction before any sweep ran).
 

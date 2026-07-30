@@ -1,7 +1,7 @@
 """
 Validation ladder for `capital_economy` — WP1's rungs, mechanism not bit-exact.
 
-Rungs (each backs a paper claim; see papers/wp1-economy/main.tex):
+Rungs (each backs a paper claim; see the WP1 paper, Obsidian vault):
 1. Limit equivalence: no arrivals ⇒ exact Leontief stationarity + exact conservation.
 2. The knee (Prop 1): capital dies below the pre-registered e*, compounds above.
 3. Conservation at every closure r (Prop 2/3) — float32 tolerance.

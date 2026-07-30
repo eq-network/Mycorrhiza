@@ -47,8 +47,8 @@ the defense pair is `mechanisms.fiscal.make_ai_revenue_tax` (verbatim reuse —
 taxable base = positive profit in `capital_income`) and the `ownership` (ω)
 config dial (title diversion; output-neutral by construction, WP1 Prop. 4).
 
-**6. Lineage.** Forked from `io_economy` (2026-07-29, register R4) for WP1
-(`papers/wp1-economy/`): replaced the exogenous recipe-editing schedule and the
+**6. Lineage.** Forked from `io_economy` (2026-07-29, register R4) for the WP1
+paper (Obsidian vault): replaced the exogenous recipe-editing schedule and the
 stockless AI margin with owned capital stocks bearing upkeep; repaired the
 reinvestment demand leak into a conservation-preserving stall. Spec was
 referee-gated before implementation (13 defects raised and resolved).

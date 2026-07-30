@@ -55,6 +55,7 @@ class BundleSpec:
     derived: Tuple[str, ...]            # engine-side (T,) reductions (derived.py)
     overrides: dict = field(default_factory=dict)
     playback: object = "all"            # "all" | tuple of index tuples
+    T: int = T                          # per-bundle run length (coupled runs longer)
     notes: str = ""
 
 
@@ -74,10 +75,13 @@ BUNDLES: Tuple[BundleSpec, ...] = (
                  "arbitrary-but-swept"),
             Axis("reinvest_rate", "profit reinvestment rate", tuple(_WP1.reinvest_rates),
                  "tuned-for-legibility"),
+            Axis("ownership", "public ownership share", (0.0, 0.2, 0.4, 0.6),
+                 "arbitrary-but-swept"),
         ),
         metrics=(
+            # human_income_share dropped: degenerate at this window (== 1.0 in
+            # every cell, 2026-07-30 audit) — a dead lane is worse than no lane
             Metric("ai_wealth_share", "AI wealth share", "down_good"),
-            Metric("human_income_share", "human income share", "up_good"),
             Metric("output_late", "late output", "neutral"),
             Metric("output_peak", "peak output", "neutral"),
             Metric("capital_late", "late AI capital", "neutral"),
@@ -85,7 +89,10 @@ BUNDLES: Tuple[BundleSpec, ...] = (
         ),
         whitelist=("capital", "wealth", "efficiency"),
         derived=("human_income_share", "ai_wealth_share", "output_total"),
-        notes="WP1 E1 knee grid, imported from experiments/wp1_economy/config.py.",
+        playback=_subgrid((0, 2, 4, 6, 8), (0, 1), (0, 2)),
+        notes=("WP1 E1 knee grid (efficiency x reinvest imported from "
+               "experiments/wp1_economy/config.py) + the ownership (omega) defense "
+               "dial (WP1 Prop. 4; title diversion, output-neutral by construction)."),
     ),
     BundleSpec(
         bundle_id="influence-exchange-ampdrift-v1",
@@ -95,6 +102,8 @@ BUNDLES: Tuple[BundleSpec, ...] = (
                  "arbitrary-but-swept"),
             Axis("update_rate", "attention drift rate", tuple(_WP2.drift_grid[1:]),
                  "arbitrary-but-swept"),
+            Axis("susceptibility", "susceptibility to the network",
+                 tuple(_WP2.floor_lams), "anchored"),
         ),
         metrics=(
             Metric("human_influence_share", "human influence share", "up_good"),
@@ -105,9 +114,11 @@ BUNDLES: Tuple[BundleSpec, ...] = (
         whitelist=("influence",),
         derived=("human_influence_share", "top_influence_share",
                  "opinion_p10", "opinion_p50", "opinion_p90"),
-        notes=("WP2 dial grids (amp_grid x drift_grid), imported from "
+        playback=_subgrid((0, 1, 3, 5), (0, 2, 4), (0, 3)),
+        notes=("WP2 dial grids (amp_grid x drift_grid x floor_lams), imported from "
                "experiments/wp2_culture/config.py; drift = update_rate override "
-               "(wp2 run.py convention). update_rate=0.0 dropped: a frozen "
+               "(wp2 run.py convention); susceptibility 1.0 is the floor-removal "
+               "corner (capture unbounded). update_rate=0.0 dropped: a frozen "
                "attention graph makes every other dial dead, wasting a lattice row."),
     ),
     BundleSpec(
@@ -118,6 +129,8 @@ BUNDLES: Tuple[BundleSpec, ...] = (
                  "arbitrary-but-swept"),
             Axis("churn", "re-delegation churn", tuple(_WP3.churns),
                  "anchored"),
+            Axis("entrenchment_gain", "lock-in strength", tuple(_WP3.lockins),
+                 "arbitrary-but-swept"),
         ),
         metrics=(
             Metric("human_power_share", "human power share", "up_good"),
@@ -132,7 +145,10 @@ BUNDLES: Tuple[BundleSpec, ...] = (
         whitelist=("influence", "ideal", "policy_target", "enforcement",
                    "redelegation_friction"),
         derived=("human_power_share", "top_delegate_share"),
-        notes="WP3 E1 knee grid (advantage x churn), imported from experiments/wp3_politics/config.py.",
+        playback=_subgrid((0, 2, 4, 6), (0, 3), (0, 2, 3)),
+        notes=("WP3 E1 knee grid (advantage x churn) + the lock-in dial "
+               "(entrenchment_gain, E2's axis) — all imported from "
+               "experiments/wp3_politics/config.py; lock-in 0 is the honest region."),
     ),
     BundleSpec(
         bundle_id="ledger-society-channels-v1",
@@ -142,8 +158,10 @@ BUNDLES: Tuple[BundleSpec, ...] = (
                  "arbitrary-but-swept"),
             Axis("attention_to_ballots", "attention moves ballots",
                  (0.0, 0.5, 1.0, 2.0, 4.0), "arbitrary-but-swept"),
-            Axis("regime_rate", "money moves rules", (0.0, 0.1, 0.3),
-                 "arbitrary-but-swept"),
+            # values resolve the knee against repair_rate=0.02 (probed 2026-07-30:
+            # enforcement 1.00/0.87/0.70/0.24/0.01 across these five)
+            Axis("regime_rate", "money moves rules",
+                 (0.0, 0.005, 0.01, 0.02, 0.04), "arbitrary-but-swept"),
         ),
         metrics=(
             Metric("human_income_share", "human income share", "up_good"),
@@ -155,14 +173,15 @@ BUNDLES: Tuple[BundleSpec, ...] = (
             Metric("policy_median_gap", "policy-median gap", "down_good"),
             Metric("enforcement_level", "enforcement", "up_good"),
         ),
-        whitelist=("wealth", "influence", "ideal", "efficiency",
-                   "policy_target", "enforcement"),
+        whitelist=("wealth", "ideal", "efficiency", "policy_target", "enforcement"),
         derived=("human_income_share", "human_wealth_share",
                  "human_attention_share", "human_power_share", "belief_mean_human"),
         # 3x3x3 playback subgrid including every sealed 0-plane cell within it
-        playback=_subgrid((0, 2, 4), (0, 2, 4), (0, 1, 2)),
+        playback=_subgrid((0, 2, 4), (0, 2, 4), (0, 2, 4)),
+        T=800,   # the coupled system runs twice as long — lock-in needs time
         notes=("NEW grid (no prior experiment) — dial values flagged for Jonas at "
-               "the Phase C review. Cell (0,0,0) is the fully sealed twin."),
+               "the review. Cell (0,0,0) is the fully sealed twin; the regime axis "
+               "resolves the funded-pressure knee against institutional repair."),
     ),
 )
 

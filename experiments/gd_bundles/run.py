@@ -68,20 +68,21 @@ def _point(result, cell, metric):
     raise KeyError(cell)
 
 
-# committed expectation checks, keyed from config.EXPECTATIONS
+# committed expectation checks, keyed from config.EXPECTATIONS. Third-axis
+# index 0 is each defense/floor dial's off/default value.
 def _check(key: str, result: dict) -> bool:
     if key == "capital_both_regimes":
-        return (_point(result, (0, 1), "ai_wealth_share") < 0.2
-                and _point(result, (8, 1), "ai_wealth_share") > 0.5)
+        return (_point(result, (0, 1, 0), "ai_wealth_share") < 0.2
+                and _point(result, (8, 1, 0), "ai_wealth_share") > 0.5)
     if key == "influence_amp_captures":
-        return (_point(result, (0, 2), "human_influence_share")
-                - _point(result, (5, 2), "human_influence_share") > 0.10)
+        return (_point(result, (0, 2, 0), "human_influence_share")
+                - _point(result, (5, 2, 0), "human_influence_share") > 0.10)
     if key == "polity_both_regimes":
-        return (_point(result, (0, 1), "human_power_share") > 0.75
-                and _point(result, (6, 0), "human_power_share") < 0.5)
+        return (_point(result, (0, 1, 0), "human_power_share") > 0.75
+                and _point(result, (6, 0, 0), "human_power_share") < 0.5)
     if key == "ledger_coupling_costs":
         return (_point(result, (0, 0, 0), "composite")
-                > _point(result, (4, 4, 2), "composite"))
+                > _point(result, (4, 4, 4), "composite"))
     raise ValueError(f"unknown expectation key {key!r}")
 
 
@@ -94,13 +95,15 @@ def main():
     specs = [s for s in BUNDLES if args.bundle in (None, s.bundle_id)]
     if not specs:
         parser.error(f"unknown bundle {args.bundle!r}")
-    n_seeds, n_steps = (2, 8) if args.smoke else (N_SEEDS, T)
+    n_seeds = 2 if args.smoke else N_SEEDS
 
     out, failed = {}, []
     for spec in specs:
         spec_run = smoke_spec(spec) if args.smoke else spec
-        print(f"{spec.bundle_id}: {np.prod([len(a.values) for a in spec_run.axes])} cells")
+        n_steps = 8 if args.smoke else spec.T
+        print(f"{spec.bundle_id}: {np.prod([len(a.values) for a in spec_run.axes])} cells, T={n_steps}")
         result = run_bundle(spec_run, n_seeds, n_steps)
+        result["T"] = n_steps
         result["expectations"] = []
         if not args.smoke:
             for desc, key in EXPECTATIONS.get(spec.bundle_id, []):
@@ -113,7 +116,7 @@ def main():
 
     path = SMOKE_RESULTS if args.smoke else RESULTS
     with open(path, "w") as f:
-        json.dump({"n_seeds": n_seeds, "T": n_steps, "seed0": SEED0,
+        json.dump({"n_seeds": n_seeds, "seed0": SEED0,
                    "smoke": args.smoke, "bundles": out}, f)
     print(f"wrote {path}")
     if failed:

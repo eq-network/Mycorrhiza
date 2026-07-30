@@ -86,6 +86,12 @@ class LedgerSocietyConfig:
     alignment_ai: float = 0.30       # fidelity blend (arbitrary-but-swept)
     regime_rate: float = 0.10        # how fast funded pressure moves the rules
                                      # (arbitrary-but-swept; 0 seals money→rules)
+    repair_rate: float = 0.02        # institutional self-repair toward full
+                                     # enforcement (the maintenance floor — same
+                                     # native-reversion idiom as WP3 churn /
+                                     # value_contagion recovery; 0 = pure ratchet,
+                                     # probed to collapse at ANY positive
+                                     # regime_rate; arbitrary-but-swept)
     pressure_scale: float = 1.0      # lobby saturation scale (arbitrary-but-swept)
     entrenchment_gain: float = 0.0   # OFF by default — the honest region (WP3)
     entrenchment_threshold: float = 0.35

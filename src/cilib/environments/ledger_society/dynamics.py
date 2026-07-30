@@ -246,8 +246,14 @@ def make_update_regime(cfg: LedgerSocietyConfig):
         top = jnp.max(v) / jnp.maximum(jnp.sum(v), 1e-12)
         over = (jnp.maximum(top - cfg.entrenchment_threshold, 0.0)
                 / (1.0 - cfg.entrenchment_threshold))
+        # institutional self-repair: without it any sustained funded pressure is
+        # a pure ratchet (integrator with no restoring force — probed 2026-07-30:
+        # regime_rate 0.005 already collapses enforcement by t=400). repair_rate
+        # is the polity's maintenance floor, the same native-reversion idiom as
+        # WP3's churn and value_contagion's recovery; 0 restores the ratchet.
         regime = jnp.clip(
             state.global_attrs["enforcement"] + cfg.regime_rate * pressure
+            + cfg.repair_rate * (1.0 - state.global_attrs["enforcement"])
             - cfg.entrenchment_gain * over, 0.0, 1.0)
         state = state.update_global_attr("enforcement", regime)
         return state.update_global_attr("redelegation_friction", regime)

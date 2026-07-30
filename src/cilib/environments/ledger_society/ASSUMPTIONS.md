@@ -21,6 +21,14 @@ spends fastest.
   attractiveness), `regime_rate` (money→rules: lobby spend moves enforcement,
   direction set endogenously by the sign of each spender's net redistribution
   transfer). Each is exactly neutral at 0; the three dials are the knockout axes.
+- **Institutional self-repair** (`repair_rate`, default 0.02): enforcement relaxes
+  toward 1 at this rate — the polity's maintenance floor, the same native-reversion
+  idiom as WP3's churn and value_contagion's recovery. Added 2026-07-30 after a
+  probe showed the unrepaired channel is a pure ratchet (any positive `regime_rate`
+  collapses enforcement; the dial only set the speed). With repair, equilibrium
+  enforcement is set by the pressure/repair ratio and the regime dial has a real
+  gradient (probed: 1.00/0.87/0.70/0.24/0.01 across rates 0–0.04). `repair_rate=0`
+  restores the ratchet — the honest bracket, sweepable.
 - The economy leg is a REDUCED WP1, not the full `capital_economy`: two-factor
   production with an automation share `a = eK/(eK+H)`, no IO backbone, no upkeep
   settlement, consumption as a sink rather than a demand loop. The conservation

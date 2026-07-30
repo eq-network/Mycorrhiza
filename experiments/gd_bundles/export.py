@@ -255,7 +255,7 @@ def main():
         spec_x = smoke_spec(spec) if args.smoke else spec
         lattice = dict(results["bundles"][spec.bundle_id],
                        n_seeds=results["n_seeds"])
-        export_bundle(spec_x, lattice, out_root, results["T"], validators)
+        export_bundle(spec_x, lattice, out_root, lattice["T"], validators)
 
     # the schema ships with the bundles so the site validates the same document
     with open(SCHEMA_PATH) as f:

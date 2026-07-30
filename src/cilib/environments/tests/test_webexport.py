@@ -79,6 +79,14 @@ def test_mapping_rules_and_producer_options():
                             round_decimals=4)
     assert p3["global"]["share"][0] == pytest.approx(0.1235)
 
+    # integer index series stay ints on the wire, untouched by rounding
+    trace_int = dict(trace, target=np.array(
+        [[1, 2, 0]] * 3 + [[2, 1, 0]], dtype=np.int32))
+    p4 = trajectory_payload(trace_int, None, game_id="g", n_steps=T, seed=1,
+                            params={}, scalars={}, round_decimals=4)
+    assert p4["node"]["target"] == [1, 2, 0] * 3 + [2, 1, 0]
+    assert all(isinstance(v, int) for v in p4["node"]["target"])
+
     with pytest.raises(ValueError):
         trajectory_payload({"bad": np.zeros((2, 2, 2))}, None, game_id="g",
                            n_steps=2, seed=0, params={}, scalars={})

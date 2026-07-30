@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://eq-network.org/lab/runs/bundle.schema.json",
-  "title": "GD-suite sweep bundle (schema_version 1)",
+  "title": "GD-suite sweep bundle (schema_version 2)",
   "description": "One dial-lattice bundle: manifest.json + scalars.json + runs/c-*.json. Validated twice from this single document: Python jsonschema on export (experiments/gd_bundles/export.py) and ajv in eq-network CI (apps/site/scripts/validate-bundles.mjs). Code-level checks BOTH validators must add (JSON Schema cannot express them): (1) scalars arrays have length prod(shape); (2) each run's node field arrays have length T*N and global fields length T; (3) checksums in manifest match sha256 of the sibling files; (4) size gates: 400 KB per runs/*.json, 12 MB per bundle; (5) playback cell indices lie within shape.",
   "$defs": {
     "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
@@ -12,10 +12,11 @@
         "schema_version", "contract_version", "bundle_id", "env", "suite",
         "created", "engine", "config_hash", "base_config", "overrides",
         "T", "n_seeds", "seed0", "representative_seed_index",
-        "axes", "metrics", "trace_fields", "playback", "checksums"
+        "axes", "default_cell", "overlays", "metrics", "trace_fields",
+        "playback", "checksums"
       ],
       "properties": {
-        "schema_version": { "const": "1" },
+        "schema_version": { "const": "2" },
         "contract_version": { "const": "1.1" },
         "bundle_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
         "env": { "type": "string" },
@@ -51,7 +52,33 @@
               "label": { "type": "string" },
               "values": { "type": "array", "minItems": 2, "items": { "type": "number" } },
               "param_type": { "enum": ["anchored", "tuned-for-legibility", "arbitrary-but-swept"] },
-              "unit": { "type": "string" }
+              "unit": { "type": "string" },
+              "anchor": { "type": "string" },
+              "paper_ref": { "type": "string" }
+            }
+          }
+        },
+        "default_cell": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0 }
+        },
+        "overlays": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "kind", "label"],
+            "properties": {
+              "id": { "type": "string" },
+              "kind": { "enum": ["boundary", "band", "curve", "floor"] },
+              "label": { "type": "string" },
+              "axis": { "type": "string" },
+              "x_axis": { "type": "string" },
+              "y_axis": { "type": "string" },
+              "metric": { "type": "string" },
+              "lo": { "type": "number" },
+              "hi": { "type": "number" },
+              "values": { "$ref": "#/$defs/numberArray" },
+              "points": { "type": "array", "items": { "$ref": "#/$defs/numberArray" } }
             }
           }
         },

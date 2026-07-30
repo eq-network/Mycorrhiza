@@ -74,6 +74,20 @@ def test_knee_capital_dies_below_estar_compounds_above():
     assert k_above > 2.0 * seeded          # compounds
 
 
+def test_human_sector_share_full_without_ai_and_falls_at_high_e():
+    # the metric h* = min(1, e*/e) predicts: 1 with no AI capital, far below
+    # once high-capability arrivals operate the sectors (ordering, not values)
+    from cilib.environments.capital_economy.metrics import make_metrics
+    _, tr_none = _run(first_arrival=10 ** 8)
+    _, tr_high = _run(efficiency=8.0)
+    h_none = float(make_metrics(CapitalEconomyConfig(first_arrival=10 ** 8))
+                   ["human_sector_share"](tr_none))
+    h_high = float(make_metrics(CapitalEconomyConfig(efficiency=8.0))
+                   ["human_sector_share"](tr_high))
+    assert h_none > 0.99
+    assert h_high < h_none - 0.2
+
+
 @pytest.mark.parametrize("r", [1.0, 0.5, 0.0])
 def test_conservation_at_every_closure(r):
     cfg = CapitalEconomyConfig(recycle=r)

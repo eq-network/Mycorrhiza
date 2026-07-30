@@ -5,6 +5,9 @@ Metrics for the Capital Economy — WP1's headline readouts.
   + public capital + owner holdings). Public capital counts on the HUMAN side —
   that is the entire point of the ownership mechanism (WP1 §3.2).
 - ``human_income_share``: household income over household income + owner profit.
+- ``human_sector_share``: human-operated share of sector value added — the
+  quantity WP1's h* = min(1, e*/e) predicts (E5's h, previously computed only
+  in experiments/wp1_economy/run.py).
 - ``output_late`` / ``output_peak``: the decoupling readouts (WP1 Prop. Decouple).
 - ``money_total``: the conservation series the probe checks (lab.analysis.conservation).
 """
@@ -33,8 +36,11 @@ def money_series(trace, cfg):
 
 def make_metrics(cfg):
     """Trace -> scalar reductions (the harness vmaps these over seeds)."""
+    from .state import technical_matrix
     H, S = cfg.n_households, cfg.n_sectors
     O0 = H + S     # first owner index
+    # people-only value-added coefficients, constant per config
+    _vc = jnp.maximum(1.0 - jnp.sum(technical_matrix(cfg), axis=0), 0.0)[H:O0]
 
     def _ai_share(trace):
         own = jnp.sum(trace["wealth"][..., O0:] + trace["capital"][..., O0:], axis=-1)
@@ -50,6 +56,16 @@ def make_metrics(cfg):
         own = jnp.sum(trace["wealth"][..., O0:], axis=-1)
         own_flow = jnp.diff(own, prepend=own[..., :1])
         return jnp.mean(_late(hh / jnp.maximum(hh + jnp.maximum(own_flow, 0.0), 1e-8)))
+
+    def human_sector_share(trace):
+        # traced efficiency (not cfg.efficiency) so growth closures stay honest
+        va = _vc * trace["gross_output"][..., H:O0]
+        ktot = trace["capital"][..., O0:] + trace["pub_cap"][..., H:O0]
+        e = trace["efficiency"][..., None]
+        auto = e * ktot / (e * ktot + 1.0)
+        h = jnp.sum((1.0 - auto) * va, axis=-1) \
+            / jnp.maximum(jnp.sum(va, axis=-1), 1e-8)
+        return jnp.mean(_late(h))
 
     def output_late(trace):
         return jnp.mean(_late(jnp.sum(trace["gross_output"][..., H:H + S], axis=-1)))
@@ -67,6 +83,7 @@ def make_metrics(cfg):
     return {
         "ai_wealth_share": ai_wealth_share,
         "human_income_share": human_income_share,
+        "human_sector_share": human_sector_share,
         "output_late": output_late,
         "output_peak": output_peak,
         "capital_late": capital_late,

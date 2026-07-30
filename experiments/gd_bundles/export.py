@@ -45,6 +45,7 @@ from .config import (
     BundleSpec,
 )
 from .derived import DERIVED
+from .overlays import overlays_for
 from .run import RESULTS, SMOKE_RESULTS, cell_indices, cell_overrides, smoke_spec
 
 ENV_MODULES = {
@@ -110,8 +111,29 @@ def _playback_cells(spec: BundleSpec):
     return [tuple(c) for c in spec.playback]
 
 
+def default_cell_of(spec: BundleSpec, base_config: dict, strict: bool):
+    """The base config's cell on the lattice. The house rule 'the default is a
+    nothing-special point on the swept curve' becomes a structural export
+    failure here (it would have caught regime_rate=0.10 sitting off-lattice).
+    Smoke twins truncate axes, so strict=False falls back to cell 0."""
+    cell = []
+    for a in spec.axes:
+        match = next((i for i, x in enumerate(a.values)
+                      if abs(x - base_config[a.name]) < 1e-9), None)
+        if match is None:
+            assert not strict, (
+                f"{spec.bundle_id}: default {a.name}={base_config[a.name]} "
+                f"is not on the swept axis {list(a.values)}")
+            match = 0
+        cell.append(match)
+    if strict and spec.playback != "all":
+        assert tuple(cell) in {tuple(c) for c in spec.playback}, \
+            f"{spec.bundle_id}: default cell {cell} has no playback run"
+    return cell
+
+
 def export_bundle(spec: BundleSpec, lattice: dict, out_root: str,
-                  n_steps: int, validators) -> dict:
+                  n_steps: int, validators, strict: bool = True) -> dict:
     out = os.path.join(out_root, spec.bundle_id)
     os.makedirs(os.path.join(out, "runs"), exist_ok=True)
     shape = lattice["shape"]
@@ -175,10 +197,11 @@ def export_bundle(spec: BundleSpec, lattice: dict, out_root: str,
     axes = [dataclasses.asdict(a) for a in spec.axes]
     for a in axes:
         a["values"] = list(a["values"])
-        if a.get("unit") is None:
-            a.pop("unit", None)
+        for opt in ("unit", "anchor", "paper_ref"):
+            if a.get(opt) is None:
+                a.pop(opt, None)
     manifest = {
-        "schema_version": "1",
+        "schema_version": "2",
         "contract_version": "1.1",
         "bundle_id": spec.bundle_id,
         "env": spec.env,
@@ -199,6 +222,9 @@ def export_bundle(spec: BundleSpec, lattice: dict, out_root: str,
         "seed0": SEED0,
         "representative_seed_index": 0,
         "axes": axes,
+        "default_cell": default_cell_of(
+            spec, dataclasses.asdict(base_env.config), strict),
+        "overlays": overlays_for(spec),
         "metrics": [{"id": m.id, "label": m.label, "direction": m.direction,
                      "late_window": 0.25,
                      "definition_hash": _sha256_text(inspect.getsource(base_env.metrics[m.id]))}
@@ -255,7 +281,8 @@ def main():
         spec_x = smoke_spec(spec) if args.smoke else spec
         lattice = dict(results["bundles"][spec.bundle_id],
                        n_seeds=results["n_seeds"])
-        export_bundle(spec_x, lattice, out_root, lattice["T"], validators)
+        export_bundle(spec_x, lattice, out_root, lattice["T"], validators,
+                      strict=not args.smoke)
 
     # the schema ships with the bundles so the site validates the same document
     with open(SCHEMA_PATH) as f:

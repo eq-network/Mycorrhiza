@@ -69,20 +69,39 @@ def _point(result, cell, metric):
 
 
 # committed expectation checks, keyed from config.EXPECTATIONS. Third-axis
-# index 0 is each defense/floor dial's off/default value.
+# index 0 is each defense/floor dial's off/default value. v2 grids: economy
+# rows are (efficiency, recycle, ownership) with recycle index 4 = r 1.0;
+# influence drift index 3 = u 0.08 on the restored full grid.
 def _check(key: str, result: dict) -> bool:
-    if key == "capital_both_regimes":
-        return (_point(result, (0, 1, 0), "ai_wealth_share") < 0.2
-                and _point(result, (8, 1, 0), "ai_wealth_share") > 0.5)
+    if key == "capital_three_regimes":
+        h = [_point(result, (i, 4, 0), "human_sector_share") for i in (0, 2, 7)]
+        return h[0] > 0.9 and 0.1 < h[1] < 0.9 and h[2] < 0.1
+    if key == "capital_ai_wealth_orders":
+        return (_point(result, (0, 4, 0), "ai_wealth_share") < 0.2
+                and _point(result, (7, 4, 0), "ai_wealth_share") > 0.5)
+    if key == "capital_recycle_minimum":
+        mid = _point(result, (2, 1, 0), "output_late")
+        return (mid < _point(result, (2, 0, 0), "output_late")
+                and mid < _point(result, (2, 2, 0), "output_late"))
     if key == "influence_amp_captures":
-        return (_point(result, (0, 2, 0), "human_influence_share")
-                - _point(result, (5, 2, 0), "human_influence_share") > 0.10)
+        return (_point(result, (0, 3, 0), "human_influence_share")
+                - _point(result, (5, 3, 0), "human_influence_share") > 0.10)
+    if key == "influence_frozen_protects":
+        return _point(result, (5, 0, 0), "human_influence_share") > 0.7
+    if key == "influence_lambda_belief_capture":
+        return (_point(result, (5, 3, 3), "consensus_error")
+                > _point(result, (5, 3, 0), "consensus_error"))
     if key == "polity_both_regimes":
         return (_point(result, (0, 1, 0), "human_power_share") > 0.75
                 and _point(result, (6, 0, 0), "human_power_share") < 0.5)
+    if key == "polity_churn_defends":
+        return _point(result, (6, 3, 0), "human_power_share") > 0.6
     if key == "ledger_coupling_costs":
         return (_point(result, (0, 0, 0), "composite")
                 > _point(result, (4, 4, 4), "composite"))
+    if key == "ledger_regime_knee":
+        return (_point(result, (3, 3, 0), "enforcement_level")
+                - _point(result, (3, 3, 4), "enforcement_level") > 0.5)
     raise ValueError(f"unknown expectation key {key!r}")
 
 
@@ -115,6 +134,10 @@ def main():
         out[spec.bundle_id] = result
 
     path = SMOKE_RESULTS if args.smoke else RESULTS
+    # --bundle must not clobber the other bundles' lattices: merge over prior
+    if args.bundle and os.path.exists(path):
+        with open(path) as f:
+            out = {**json.load(f).get("bundles", {}), **out}
     with open(path, "w") as f:
         json.dump({"n_seeds": n_seeds, "seed0": SEED0,
                    "smoke": args.smoke, "bundles": out}, f)

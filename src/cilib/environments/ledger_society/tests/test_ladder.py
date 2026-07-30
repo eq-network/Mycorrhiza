@@ -59,6 +59,23 @@ def test_money_conservation_and_adjacency_ledgers():
     assert float(jnp.max(jnp.abs(p - 1.0))) < 1e-4
 
 
+def test_top_target_trace_indexes_dominant_edges():
+    env, finals, traces = _run(n_steps=60, n_seeds=2)
+    N = finals.adj_matrices["listening"].shape[-1]
+    for field, ledger in (("top_listen_target", "listening"),
+                          ("top_delegate_target", "delegation")):
+        idx = traces[field]                                   # (seeds, T, N)
+        assert idx.dtype == jnp.int32
+        assert bool(jnp.all((idx >= 0) & (idx < N)))
+        # the self column is masked out of the argmax
+        assert bool(jnp.all(idx != jnp.arange(N)[None, None, :]))
+        # trace is post-pipeline per tick: the last row must equal the masked
+        # argmax of the final ledger — exactness, not ordering
+        A = finals.adj_matrices[ledger]                       # (seeds, N, N)
+        masked = jnp.where(jnp.eye(N, dtype=bool)[None], -jnp.inf, A)
+        assert bool(jnp.all(idx[:, -1] == jnp.argmax(masked, axis=-1)))
+
+
 # --- rung 3: sealing — an economy dial cannot move culture or politics ------------
 
 def test_sealed_domains_are_bit_identical_under_economy_dial_change():

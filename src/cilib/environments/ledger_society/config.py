@@ -84,8 +84,12 @@ class LedgerSocietyConfig:
     pref_noise: float = 0.08
     ai_tax_bias: float = 0.10        # AI delegates' pull: low redistribution (tuned)
     alignment_ai: float = 0.30       # fidelity blend (arbitrary-but-swept)
-    regime_rate: float = 0.10        # how fast funded pressure moves the rules
-                                     # (arbitrary-but-swept; 0 seals money→rules)
+    regime_rate: float = 0.01        # how fast funded pressure moves the rules
+                                     # (arbitrary-but-swept; 0 seals money→rules;
+                                     # 0.01 sits mid-gradient of the probed
+                                     # 0–0.04 knee against repair_rate=0.02 —
+                                     # the old 0.10 predates repair_rate and
+                                     # lay beyond full collapse, off the lattice)
     repair_rate: float = 0.02        # institutional self-repair toward full
                                      # enforcement (the maintenance floor — same
                                      # native-reversion idiom as WP3 churn /

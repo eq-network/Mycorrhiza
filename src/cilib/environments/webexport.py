@@ -24,6 +24,11 @@ import numpy as np
 
 
 def _series(arr, round_decimals: Optional[int]):
+    arr = np.asarray(arr)
+    if np.issubdtype(arr.dtype, np.integer):
+        # index series (e.g. top-target ids) stay ints on the wire — rounding
+        # them through float64 would serialize 5 as 5.0
+        return arr.tolist()
     if round_decimals is not None:
         # float64 BEFORE rounding: rounding float32 then .tolist() yields doubles
         # with 17-digit reprs (0.029400000450015068) — tripling payload size

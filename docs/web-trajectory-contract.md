@@ -125,3 +125,7 @@ through it. Two producer options, both within v1.1:
   engine-computed values, never view-side math.
 - A producer MAY omit `adj` (it is already optional) and MAY whitelist trace
   fields; whatever ships must obey rules 1–3 unchanged.
+- A trace field MAY be an **integer index series** (e.g. `top_listen_target`,
+  per-node argmax neighbor ids) — serialized as ints, exempt from rounding.
+  Consumers treat index values as ids valid at their own tick only and MUST NOT
+  interpolate them across ticks.

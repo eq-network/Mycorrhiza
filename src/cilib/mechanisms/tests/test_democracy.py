@@ -12,7 +12,8 @@ import jax.random as jr
 from cilib.core.graph import GraphState
 from cilib.core.schedule import scheduled
 from cilib.mechanisms import (
-    REGISTRY, QuotaVoteConfig, SanctionConfig, make_quota_vote, make_graduated_sanction,
+    REGISTRY, QuotaVoteConfig, SanctionConfig, PowerWeightedVoteConfig,
+    make_quota_vote, make_graduated_sanction, make_power_weighted_vote,
 )
 
 
@@ -39,6 +40,44 @@ def _mini_state(votes, harvest, target, reward, resource):
 def test_registry_contains_democracy_family():
     assert REGISTRY["quota_vote"] is make_quota_vote
     assert REGISTRY["graduated_sanction"] is make_graduated_sanction
+    assert REGISTRY["power_weighted_vote"] is make_power_weighted_vote
+
+
+def _voting_state(positions, influence):
+    n = len(positions)
+    return GraphState(
+        node_types=jnp.zeros(n, dtype=jnp.int32),
+        node_attrs={
+            "position": jnp.asarray(positions, dtype=jnp.float32),
+            "influence": jnp.asarray(influence, dtype=jnp.float32),
+        },
+        adj_matrices={},
+        edge_attrs={},
+        global_attrs={"policy_target": jnp.array(0.0, dtype=jnp.float32),
+                      "step": jnp.array(0, dtype=jnp.int32)},
+    )
+
+
+def test_power_weighted_vote_uniform_weights_is_the_median():
+    vote = make_power_weighted_vote(PowerWeightedVoteConfig())
+    state = _voting_state([1.0, 2.0, 3.0, 4.0, 5.0], [0.2] * 5)
+    assert abs(float(vote(state).global_attrs["policy_target"]) - 3.0) < 1e-6
+
+
+def test_power_weighted_vote_dominant_bloc_dictates():
+    """A bloc holding more than half the weight IS the weighted median —
+    the sharp edge the delegative_polity capture story turns on."""
+    vote = make_power_weighted_vote(PowerWeightedVoteConfig())
+    state = _voting_state([0.1, 0.2, 0.3, 0.4, 0.9], [0.1, 0.1, 0.1, 0.1, 0.6])
+    assert abs(float(vote(state).global_attrs["policy_target"]) - 0.9) < 1e-6
+
+
+def test_power_weighted_vote_is_a_swap_for_quota_vote():
+    """Alternative aggregation rules by design: same write target, so they swap
+    rather than compose (documented in democracy.py's family contract)."""
+    pwv = make_power_weighted_vote(PowerWeightedVoteConfig())
+    qv = make_quota_vote(QuotaVoteConfig())
+    assert pwv.writes == qv.writes == frozenset({"policy_target"})
 
 
 def test_quota_vote_tracks_median_and_schedule_owns_timing():

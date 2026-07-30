@@ -12,7 +12,8 @@ See README.md for the contract.
 """
 from .market import create_market_transform
 from .democracy import (
-    QuotaVoteConfig, SanctionConfig, make_quota_vote, make_graduated_sanction,
+    QuotaVoteConfig, SanctionConfig, PowerWeightedVoteConfig,
+    make_quota_vote, make_graduated_sanction, make_power_weighted_vote,
 )
 from .fiscal import (
     AIRevenueTaxConfig, EnforcedAITaxConfig, OwnershipCapConfig,
@@ -27,6 +28,7 @@ REGISTRY = {
     "market": create_market_transform,
     "quota_vote": make_quota_vote,
     "graduated_sanction": make_graduated_sanction,
+    "power_weighted_vote": make_power_weighted_vote,
     "ai_revenue_tax": make_ai_revenue_tax,
     "enforced_ai_tax": make_enforced_ai_tax,
     "ownership_cap": make_ownership_cap,
@@ -37,6 +39,7 @@ REGISTRY = {
 __all__ = [
     "create_market_transform",
     "QuotaVoteConfig", "SanctionConfig", "make_quota_vote", "make_graduated_sanction",
+    "PowerWeightedVoteConfig", "make_power_weighted_vote",
     "AIRevenueTaxConfig", "OwnershipCapConfig", "make_ai_revenue_tax", "make_ownership_cap",
     "EnforcedAITaxConfig", "make_enforced_ai_tax",
     "SortitionConfig", "InfluenceCapConfig", "make_sortition", "make_influence_cap",

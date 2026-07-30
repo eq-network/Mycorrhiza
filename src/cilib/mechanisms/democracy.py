@@ -3,7 +3,9 @@ Democracy family — collective-choice and enforcement mechanisms.
 
 Ostrom's core loop (Governing the Commons, 1990): the group sets its own rules
 (collective-choice arrangements) and enforces them with sanctions graduated in the size
-of the violation. Two composable entries:
+of the violation. Two composable entries, plus one alternative aggregation rule
+(``power_weighted_vote`` — the weighted-electorate median for delegative_polity, which
+swaps in for ``quota_vote`` rather than composing with it):
 
 - ``quota_vote``: direct democracy — a quantile (default median) of the ``vote`` field
   becomes the global ``policy_target``. Timing (re-vote cadence, onset) belongs to the
@@ -53,6 +55,40 @@ def make_quota_vote(cfg: QuotaVoteConfig):
         voted = jnp.quantile(state.node_attrs["vote"], cfg.quantile)
         return state.update_global_attr("policy_target", voted)
     return quota_vote
+
+
+def _weighted_median(values, weights, quantile: float = 0.5):
+    """Weighted quantile: the smallest value whose cumulative weight reaches
+    ``quantile`` of the total. Sort + cumsum + searchsorted — exact, O(N log N),
+    JIT/vmap-safe (no data-dependent control flow). With uniform weights and odd
+    N this is the ordinary median (a single order statistic, no averaging)."""
+    order = jnp.argsort(values)
+    v = values[order]
+    cum = jnp.cumsum(weights[order])
+    idx = jnp.searchsorted(cum, quantile * cum[-1])
+    return v[jnp.clip(idx, 0, v.shape[0] - 1)]
+
+
+@dataclasses.dataclass(frozen=True)
+class PowerWeightedVoteConfig:
+    quantile: float = 0.5   # 0.5 = weighted median
+
+
+def make_power_weighted_vote(cfg: PowerWeightedVoteConfig):
+    """Power-weighted median of ``node_attrs["position"]`` → ``global_attrs["policy_target"]``.
+
+    The weighted-electorate generalization of ``quota_vote``: each node's declared
+    ``position`` counts with its ``influence`` weight (Black's median-voter theorem
+    holds for the weighted median under single-peaked preferences with positive
+    weights). An *alternative aggregation rule* to ``quota_vote``, not a composable
+    sibling — both write ``policy_target`` by design; swap one for the other."""
+
+    @transform(reads=["position", "influence"], writes=["policy_target"])
+    def power_weighted_vote(state: GraphState) -> GraphState:
+        voted = _weighted_median(state.node_attrs["position"],
+                                 state.node_attrs["influence"], cfg.quantile)
+        return state.update_global_attr("policy_target", voted)
+    return power_weighted_vote
 
 
 @dataclasses.dataclass(frozen=True)

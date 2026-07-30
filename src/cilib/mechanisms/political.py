@@ -36,6 +36,9 @@ class SortitionConfig:
     share: float = 0.5    # fraction of off-self listening returned to the demos
                           # (calibrated 2026-07-27: with cap 0.04 + cadence 15
                           # the four A4 conditions separate at T=400)
+    adj_key: str = "listening"   # the attention adjacency the lottery acts on
+                                 # ("listening" in influence_exchange, "delegation"
+                                 # in delegative_polity — same constitution idiom)
 
 
 def make_sortition(cfg: SortitionConfig):
@@ -46,9 +49,9 @@ def make_sortition(cfg: SortitionConfig):
     blend target is itself a distribution over each row.
     """
 
-    @transform(reads=["listening"], writes=["listening"])
+    @transform(reads=[cfg.adj_key], writes=[cfg.adj_key])
     def sortition(state: GraphState) -> GraphState:
-        W = state.adj_matrices["listening"]
+        W = state.adj_matrices[cfg.adj_key]
         N = W.shape[0]
         eye = jnp.eye(N)
         is_citizen_col = (state.node_types == 0).astype(W.dtype)[None, :]
@@ -64,7 +67,7 @@ def make_sortition(cfg: SortitionConfig):
 
         W_new = diag + blended
         is_ai_row = (state.node_types == 1)[:, None]
-        return state.update_adj_matrix("listening", jnp.where(is_ai_row, W, W_new))
+        return state.update_adj_matrix(cfg.adj_key, jnp.where(is_ai_row, W, W_new))
     return sortition
 
 

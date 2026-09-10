@@ -65,3 +65,21 @@ referee-gated before implementation (13 defects raised and resolved).
 **7. Status.** Live v0 (2026-07-29): validation ladder passing; conservation
 exact to float32. Not yet a benchmark `ScenarioSpec`; sector-heterogeneous
 capital and adaptive owners deferred by design.
+
+**8. Instrument defect, found and fixed 2026-08-01.** `money_series` summed the
+raw `last_reward` field. `ai_revenue_tax` writes a negative `-tax` record on
+OWNER slots — a bookkeeping entry that no dynamic rule reads, since both `spend`
+and the household wealth update consume `max(last_reward, 0)`. Counting it
+double-subtracted the tax and reported a spurious ~2e-2 drift whenever a tax
+mechanism sat in the slot, against ~4e-7 (float32 rounding) without one. The
+dynamics were never at fault; the instrument was. Clipping `pending` at zero
+restores exact conservation under the tax.
+
+The defect survived because `test_conservation_at_every_closure` parametrizes
+over the `r`-closure family only and never put a mechanism in the slot — the
+probe's coverage gap, not its sensitivity. `test_conservation_holds_with_a_
+mechanism_in_the_slot` now closes it. Found by porting this model to the web
+playground (`eq-network/apps/playground`), where the same drift reproduced: a
+reimplementation disagreeing with its source is worth more as a check than the
+source's own green suite, which is the argument for keeping the port honest
+rather than merely present.

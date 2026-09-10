@@ -95,6 +95,19 @@ def test_conservation_at_every_closure(r):
     assert_conserved(money_series(tr, cfg), tol=1e-3, label=f"money(r={r})")
 
 
+def test_conservation_holds_with_a_mechanism_in_the_slot():
+    """The closure family above never put a mechanism in the slot, so the
+    invariant went unchecked there until 2026-08-01. It reported a ~2e-2 drift
+    under ``ai_revenue_tax``: not a leak in the dynamics, but ``money_series``
+    also counting the negative ``-tax`` record the mechanism writes on owner
+    slots, which no dynamic rule reads. Redistribution moves money between
+    agents and must conserve it exactly."""
+    cfg = CapitalEconomyConfig(efficiency=3.0)
+    tax = scheduled(make_ai_revenue_tax(AIRevenueTaxConfig(tax_rate=0.5)), onset=50)
+    _, tr = _run(mechanisms=(tax,), efficiency=3.0)
+    assert_conserved(money_series(tr, cfg), tol=1e-3, label="money(ai_revenue_tax)")
+
+
 def test_fault_injection_probe_catches_both_prototype_bugs():
     # Bug class 1 (savings leak): recompute the invariant WITHOUT the wealth
     # stock — money visibly drains into the untracked hole.

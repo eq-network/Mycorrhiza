@@ -24,10 +24,20 @@ def money_series(trace, cfg):
     """(T,) total money: pending household spend + all wealth + in-transit
     capital-linked demand + inventories-in-process (1ᵀAx — the SFC stock the
     probe itself forced into the invariant; measured drift is float32 rounding,
-    ~2e-6 over 300 ticks). Constant under every closure (WP1 Prop. 2/3)."""
+    ~2e-6 over 300 ticks). Constant under every closure (WP1 Prop. 2/3).
+
+    ``pending`` clips at zero because ``make_spend`` consumes exactly
+    ``max(last_reward, 0)``. Summing the raw field instead also counts the
+    negative ``-tax`` record ``ai_revenue_tax`` writes on OWNER slots — a
+    bookkeeping entry no dynamic rule reads — which double-subtracts the tax
+    and reported a spurious ~2e-2 drift whenever a tax mechanism was attached
+    (found 2026-08-01 by the playground port; the conservation probe had only
+    ever been run over the r-closure family, never with a mechanism in the
+    slot). The dynamics were never at fault; the instrument was."""
     from .state import technical_matrix
     A = technical_matrix(cfg)
-    pending = (1.0 - cfg.sigma_s) * jnp.sum(trace["last_reward"], axis=-1)
+    pending = (1.0 - cfg.sigma_s) * jnp.sum(
+        jnp.maximum(trace["last_reward"], 0.0), axis=-1)
     wealth = jnp.sum(trace["wealth"], axis=-1)
     transit = jnp.sum(trace["demand_k"], axis=-1)
     inventories = jnp.sum(A @ trace["gross_output"][..., None], axis=(-2, -1))

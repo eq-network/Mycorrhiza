@@ -55,9 +55,14 @@ to 2634 ms and `delegative_polity` 363 ms to 3983 ms (N=964 to 1924), 7 to 11x
 for 2x nodes. That is steeper than the N^2 matvec alone. The plausible cause is
 the dense float32 matrices (6.6 MB each at N=1286, two of them in
 `ledger_society`) leaving the CPU cache; that was not measured and is the first
-thing to check. `capital_economy`, which carries no adjacency ledger, shows the
-same jump (110 ms to 992 ms for N=652 to 1292), and we do not yet know which
-of its terms is quadratic. Extrapolated naively, the Track 06 milestone of
+thing to check. `capital_economy` shows the same jump (110 ms to 992 ms for
+N=652 to 1292) although its only graph is a 6-sector recipe: the technical
+matrix is stored padded to `(N, N)` with an `(S, S)` live block, and
+`distribute` rebuilds an `(N, N)` sector one-hot every tick, so each tick pays
+three dense `N x N` products (`rebalance`'s `A @ x`, `onehot.T @ K_own`,
+`onehot @ share_priv`) over matrices with at most `N x S` non-zeros. The same
+storage is used by `io_economy` and `task_economy`. Extrapolated naively, the
+Track 06 milestone of
 10,000 agents costs minutes per 200 steps on this CPU and 400 MB per dense
 float32 adjacency. This is the linear-algebra target: the adjacency ledgers
 and the row-stochastic attachment kernel, not the scan.
@@ -71,6 +76,10 @@ and the row-stochastic attachment kernel, not the scan.
   once XLA fuses across the step (the postmortem's sealing finding).
 - **Persistent compile cache for the test suite.** One config line, about 3x
   on cold repeats of identical programs. It does not remove the re-trace.
+- **The structured case first: the economy environments' `(N, N)` recipe.**
+  Index the sector block and build the one-hot as `(N, S)` instead; three
+  quadratic products per tick become `N x S`, and the equivalence is a
+  bit-identity test against the current pipeline.
 - **The real work is sparse or structured adjacency for the ledger
   environments.** `value_contagion` already has the BCOO path and the
   equivalence test; `attachment.py` is the shared kernel. Until that lands, the

@@ -1,19 +1,18 @@
 # The GD game — one playable scenario over ledger_society
 
-> **ABANDONED 2026-08-01. Do not build on this.** Jonas's verdict on what this
-> plan produced: really bad and essentially worthless, and the work was not
-> worth it. This is route A of two dead routes — the precomputed branch tree,
+> **ABANDONED 2026-08-01. Do not build on this.** The game this plan produced
+> was judged not worth continuing. This is route A of two dead routes — the precomputed branch tree,
 > which gives the player about three choices in a whole run. The record and the
 > rule against restarting it are in
 > [docs/gd-game-postmortem.md](gd-game-postmortem.md). Everything below is kept
 > as the history of what was tried, not as a plan.
 
-*Deposited 2026-07-31, direction set by Jonas. Siblings: CLAUDE.md ⟦BOUNDARY⟧,
+*Deposited 2026-07-31. Siblings: CLAUDE.md ⟦BOUNDARY⟧,
 docs/ledger-design.md, docs/dial-lattice-design.md, docs/gd-suite-v0.1.md.
 This plan supersedes the "defender playground" draft of the same morning for
 the web side; the dial-lattice bundles remain the data path for everything
 that is not the game. A simulated game-design review session ran over the
-draft the same day; its influence appears here as decisions Jonas made and as
+draft the same day; its influence appears here as decisions taken and as
 design conjectures, never as evidence.*
 
 ## 1. What this is
@@ -31,7 +30,7 @@ depend on how the run is going; the run continues down the chosen branch. Past
 the knee, a window can open onto an empty tray: the capacity to act is gone.
 That moment is the game's reason to exist.
 
-## 2. Decisions (Jonas, 2026-07-31)
+## 2. Decisions (2026-07-31)
 
 - **Game frame, unapologetic.** Decision. The fiction is load-bearing: a
   named, dated scenario bounds the loss the way a research dashboard cannot.
@@ -104,7 +103,7 @@ artifact stays in the tens of megabytes at most, fetched lazily per branch.
 
 - **G0 — the deck is authored, not discovered.** The five cards are a
   game-design decision; the engine read was reconnaissance for their build
-  cost. The realization (decision, Jonas 2026-07-31): **two currencies, not
+  cost. The realization (decision, 2026-07-31): **two currencies, not
   three** — there is no authority ledger in the model; attention and ballots
   are per-row conserved shares that cannot be globally spent. Economic cards
   are floored on the human wealth share; political cards debit the existing

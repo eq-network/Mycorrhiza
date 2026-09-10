@@ -1,8 +1,7 @@
 # gd_game — the GD game's branch trees
 
 > **DEAD 2026-08-01. Do not extend, re-run, or re-score this.** The game this
-> generates trees for was judged really bad and essentially worthless by Jonas,
-> and the work was not worth it. It is route A of two dead routes: precompute
+> generates trees for was judged not worth continuing. It is route A of two dead routes: precompute
 > forces a small enumerable choice space, so the player gets about three
 > choices in a whole run, and widening the tree does not fix that. See
 > `docs/gd-game-postmortem.md` before touching anything here.

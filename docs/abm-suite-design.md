@@ -1,6 +1,6 @@
 # The classical-ABM suite — design frame for the alpha
 
-*Deposited 2026-07-14, direction set by Jonas: the alpha is a program of **classical
+*Deposited 2026-07-14. Direction: the alpha is a program of **classical
 agent-based models** — rule-based agents only, no RL policies, no LLM agents, "the
 stupid thing first." Mainline interpretable economic variables tracked over time; every
 substrate validated against known results before its disempowerment twist is trusted;
@@ -133,7 +133,7 @@ states; our finite-Δ responsiveness is its exercised, linearized shadow) and th
 **spectral margin** 1−ρ(A) of the influence operator (`influence_matrix` already
 computes A; the flagship A5 claim is per-domain ρ<1 with coupled ρ>1 — lock-in
 invisible to per-domain monitoring). Epistemic status: research thread
-(alpha-context.md §diagnostics), Stage 1–2; the benchmark ships main indicators until
+(alpha-context.md §diagnostics), exploratory; the benchmark ships main indicators until
 that measure survives the literature.
 
 ## Interface status

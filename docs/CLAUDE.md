@@ -17,7 +17,7 @@ counterweight. Direct prose, smart-high-schooler register, no fluff.
 - **Red-team before commit.** Substantive designs, deposits, and headline results
   get an independent adversarial pass (`/red-team`). Surviving attacks are recorded
   together with their answers — never silently patched.
-- **Simulated-expert output (forest walks, round tables) is Stage 1–2** by
+- **Output from simulated expert panels is exploratory** by
   definition and never lends a real person's authority to a claim in another doc.
 - **History stays as record.** Dated deposits are not rewritten to match new
   direction; supersede with a status line, don't edit the past.

@@ -1,15 +1,14 @@
 # GD game dynamics — diagnosis and candidates for the design review
 
-> **ABANDONED 2026-08-01. Do not act on the candidates below.** Jonas's verdict
-> on the games this review was trying to repair: really bad and essentially
-> worthless, and the work was not worth it. Every candidate here — re-timing
+> **ABANDONED 2026-08-01. Do not act on the candidates below.** The games this
+> review was trying to repair were judged not worth continuing. Every candidate here — re-timing
 > the world, more windows, journey scoring, the live sandbox — is a repair to
 > route A or a move to route B, and both routes are dead. The measured
 > diagnosis in §2 stands as a description of what was built; the treatment
 > plan does not. The record and the rule against restarting either route are in
 > [docs/gd-game-postmortem.md](gd-game-postmortem.md).
 
-*2026-07-31. Material for a staged game-design review (Jonas's ask: a debate
+*2026-07-31. Material for a staged game-design review (the brief: a debate
 between designers from different schools). §2 is measured; §3 is candidate
 directions, all design conjectures; §4 is constraints the review must respect;
 §5 is what the panel is being asked. Siblings: docs/gd-game-design.md (the
@@ -93,7 +92,7 @@ the wait path flips at t≈56, and the cap enacted at t=45 — before the flip �
 moves it to t≈68. Acting early visibly delays the town turning; acting late
 cannot. That is the decision the shipped game structurally cannot offer.
 
-## 2c. Decision — the game scores the journey (Jonas, 2026-07-31)
+## 2c. Decision — the game scores the journey (2026-07-31)
 
 > "We score the entire journey. The player's choices DO matter — that is the
 > point of the game."
@@ -260,7 +259,7 @@ claim; C1's numbers will move under the full seed batch and the other towns'
 dials. Journey scoring changes what the shipped solution tables mean and
 obsoletes the current committed expectations — adopting it is a declared
 revision, not a tweak. The panel itself is a simulation: its output is
-design ideation, Stage 1–2 by definition, and lends no real person's or
+design ideation, exploratory by definition, and lends no real person's or
 studio's authority to any decision it inspires. And the sandbox's upkeep
 coefficients will be tuned until over-extension is *possible* but not
 *inevitable* — that tuning carries its type and must be probed before any

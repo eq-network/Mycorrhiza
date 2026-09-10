@@ -1,15 +1,15 @@
 # Ledger coupling — conserved flows as the cross-domain grammar
 
-*Deposited 2026-07-30 from a forest-walk + design session on universal cross-subsystem
-influence diagrams. Direction set by Jonas: the κ-gated modulation couplings in
+*Deposited 2026-07-30 from a design session on universal cross-subsystem
+influence diagrams. Direction: the κ-gated modulation couplings in
 `coupled_society` are a v0 cheat — the proper mechanism is shared conserved ledgers,
 built in this library; the playground is a view of the underlying dynamics, never the
 home of any. Siblings: `docs/model-register-design.md` (the register pattern this
 extends one level up — its §2 verdict structure is reused here), `docs/abm-suite-design.md`
 (mechanisms-attach-via-scheduler), `docs/alpha-context.md` (A5 framing),
 `docs/observability-design.md` (the run-record path that makes "playground = pure view"
-real). Epistemic status: **design, Stage 1–2 (forest-walk output)** — parked behind the
-observability layer when deposited, then unparked by Jonas the same day: **v1 shipped
+real). Status: **exploratory design** — parked behind the
+observability layer when deposited, then unparked the same day: **v1 shipped
 as `environments/ledger_society`** (2026-07-30, 8-rung ladder passing; three channel
 dials replacing κ; the knockout instrument and the coupled_society invariance run
 remain open).*
@@ -187,7 +187,7 @@ Realism must not multiply illegibility; the guards are structural:
   changes). `ledger_society` therefore ships **backend-first**; its web view arrives
   through the run-record path (O2), not another hand port. The playground-as-pure-view
   desire *is* the observability plan — one build, not two.
-- **Superseded 2026-08-01, by Jonas's direction:** the coupled scenario's port was
+- **Superseded 2026-08-01, by maintainer decision:** the coupled scenario's port was
   swapped to `ledger_society` ahead of O2, replacing the κ port rather than adding to
   it. Recorded as an exception in CLAUDE.md's boundary section together with the three
   things it was required to carry (measured parity, a generated system-graph fixture,
@@ -195,7 +195,7 @@ Realism must not multiply illegibility; the guards are structural:
   observability plan is still what retires the port.
 - **Active intent holds:** observability (O0/O1) first; new environments stay parked.
   This doc is the R1-style deposit that makes the build cheap when its slot arrives.
-- Suggested kanban items (transfer by hand): `ledger_society` env (fork of
+- Follow-ups: `ledger_society` env (fork of
   coupled_society; conservation rungs + agnosticism tests in the definition of done);
   `environments/ledger.py` conservation helper; `system_graph` domain tags +
   `quotient()`; knockout-matrix → ρ(A) analysis module (`lab/analysis`);

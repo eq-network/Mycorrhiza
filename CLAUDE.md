@@ -15,7 +15,7 @@ package — that was the pre-`src/` layout.
 
 ## Working ethos — capability first, cold engineering
 
-*Set by Jonas 2026-08-14, after a design panel drifted into defensibility theater
+*Set 2026-08-14, after a design review drifted into defensibility theater
 (clause lists, seed floors, admission gates). This section outranks any instinct
 to armor the work. We are trying to build something.*
 
@@ -74,7 +74,7 @@ O0/O1 is the next engine move).
 
 ## ⟦BOUNDARY⟧ Engine ⇄ view — the two-project contract
 
-*Set 2026-07-30, direction by Jonas.* The engine (this repo, `src/cilib`) is the
+*Set 2026-07-30.* The engine (this repo, `src/cilib`) is the
 ONLY place model dynamics exist; a behavior not reproducible here from
 `(env, config, seed)` does not exist, whatever any web page shows. The view
 (eq-network) renders versioned artifacts the engine exported — it never originates
@@ -91,20 +91,20 @@ acknowledged debt, and its true size (audited 2026-08-14 against git history) is
   the only port with measured parity (48 seeds/side, ensemble means ± SE;
   [docs/ledger-design.md](docs/ledger-design.md) §8).
 - `runPolity` — a WP3 `delegative_polity` port, added 2026-08-07 with the
-  showcase scroll Jonas directed; an extension after the never-extend rule, and
+  showcase scroll; an extension after the never-extend rule, and
   unrecorded here until this audit. Parity: **unmeasured**.
 
 Consequence, stated plainly: the /showcase page's WP-model numbers currently have
 unknown fidelity to the engine models the papers are built on. The rule stands —
 never extend the kernel further; a new environment, coupling, or metric reaches
 the page through the run-record path (O2) or it waits, and O2 is what retires all
-four ports at once. A port *swap* requires Jonas's direction plus measured
+four ports at once. A port *swap* requires an explicit maintainer decision plus measured
 ensemble parity, a pasted `system_graph()` fixture, and engine-derived series.
 
 ## ⟦DEAD END⟧ The GD game
 
-*Verdict by Jonas 2026-08-01: both 2026-07-31 game routes — the precomputed branch
-tree and live levers behind a service — were worthless; full record in
+*Decision 2026-08-01: both 2026-07-31 game routes — the precomputed branch
+tree and live levers behind a service — were abandoned; full record in
 [docs/gd-game-postmortem.md](docs/gd-game-postmortem.md), read it before proposing
 anything that calls itself a game. The rule: do not restart either route, and build
 nothing until a design starts from what the player does second by second and only

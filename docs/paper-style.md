@@ -1,7 +1,7 @@
 # WP paper style
 
-Papers live in the vault (`…/Obsidian/Research/Projects/CI Library/papers/`); the
-repo stays code-only. Rules set by Jonas 2026-07-30. Each paper's vault README is
+Papers live in the project vault, outside this repo; the
+repo stays code-only. Rules set 2026-07-30. Each paper's vault README is
 the per-paper authority — check it before drafting.
 
 - **Framing is a per-paper decision, not a series rule.** WP1 is a readable paper

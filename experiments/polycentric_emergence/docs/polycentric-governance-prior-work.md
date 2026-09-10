@@ -69,7 +69,7 @@ social-ecological ABM literature and MARL. We are not reinventing; we are fillin
 
 ---
 
-## 5. Implications for our design (carry into the forest walk + Phase 2+)
+## 5. Implications for our design (carry into Phase 2+)
 
 - **Borrow the substrate idiom from SocialJax / Harvest**, not a bespoke toy — it's JAX-native and canonical, easing comparison.
 - **Make the central-authority steelman real (AI Economist):** a learned central planner should be a *strong* baseline, so polycentric winning is non-trivial. The interesting result is *where/why* central loses — heterogeneous sub-community needs (Oates), shocks (rigidity trap), capture.
@@ -115,7 +115,7 @@ Causal states (ε-machine) are the *provably unique minimal sufficient statistic
 a **different objective** from EI-max and from Markov lumpability. **Rosas et al. 2024** is the key
 bridge: a micro process has causally/informationally **closed** macro levels **iff its causal
 states are strongly lumpable**. This formally pins down that predictive sufficiency, lumpability,
-and EI-maximization coincide only under special conditions — *exactly* the overclaim the cold-read
+and EI-maximization coincide only under special conditions — *exactly* the overclaim the reader
 panel flagged ("the same search"). Ground "the right scale" in sufficiency/closure, not in EI alone.
 
 **(d) Active inference / Bayesian mechanics — the control & normativity story (Da Costa, Friston, Ramstead).**

@@ -1,7 +1,7 @@
 # The economy model register — structural robustness by design
 
 *Deposited 2026-07-24 from a design session on the scientific validity of the economic
-scenario. Direction set by Jonas: the alpha's economic claim must rest on a **register
+scenario. Direction: the alpha's economic claim must rest on a **register
 of structurally different substrates**, not one parameterization; environments must be
 fork-friendly starting points a smart high-school student can understand. This doc is
 the register's map. Siblings: `docs/abm-suite-design.md` (the suite frame — its economy
@@ -52,7 +52,7 @@ robustness claim is correspondingly weaker and says so on every card.
 
 ## 2. The `compute_economy` verdict
 
-**Direction set by Jonas (2026-07-24):** the A2 headline was overclaimed. The findings:
+**Direction (2026-07-24):** the A2 headline was overclaimed. The findings:
 
 - **The instrument re-measures a mainline indicator.** The "influence-NOW" score is the
   response of late-run log-output to a work-preference shift — which, by the CES
@@ -200,7 +200,7 @@ add substitution — card: forked from `io_economy`, changed fixed coefficients"
 
 ## 8. Resilience is the acceptance criterion
 
-*(Research thread, Stage 1–2 — same epistemic status and same discipline as the
+*(Research thread, exploratory — same epistemic status and same discipline as the
 spectral-margin thread in `docs/abm-suite-design.md`: the benchmark ships its main
 indicators until this survives the literature. Recorded here as the destination.)*
 
@@ -243,7 +243,7 @@ decisions deposited the same session. Register phasing, interleaved around it:
   done; `compute_economy`'s relabel lands here, once `labor_dependence` is defined.
 - **R4** — cross-substrate scorecard: one defense, three substrates, ARP framing.
 
-Suggested kanban items (Obsidian board, transfer by hand): `io_economy` env,
+Follow-ups: `io_economy` env,
 `task_economy` env, `labor_dependence` relabel, basin-map deliverable, assumptions-card
 rollout to `governed_commons`.
 

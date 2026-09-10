@@ -1,8 +1,7 @@
 # Model Spec v2 — Polycentric Commons as Endogenous Causal Emergence
 
 Concrete, implementable spec for the CI-Library experiment. Updates the approved plan
-(`~/.claude/plans/take-the-following-project-steady-wren.md`) with the forest-walk insights and
-the MAS-replication framing. Companion to the paper claims rewrite
+with the design-session insights and the MAS-replication framing. Companion to the paper claims rewrite
 (`…/requisite-variety-emergence/claims-v2-polycentric-complexity.md`) and the prior-work map
 (`research/polycentric-governance-prior-work.md`).
 
@@ -145,7 +144,7 @@ interior peak. Must pass before trusting any commons result.
 - [ ] **Phase 6** EI∧fit + heterogeneity sweep (H3) + MAS replication (H_repl).
 - [ ] **Phase 7** ablation (H0) + capture (H_cap) + endogeneity (H4); full run + figures.
 
-## E. Risks / decisions deferred to Jonas
+## E. Risks / decisions deferred
 - scipy/networkx vs numpy-only clustering (going numpy-only for now to avoid new deps).
 - exact `theta` parameterization (harvest-ideal vs cost-curve) — starting with harvest-ideal.
 - whether a genuine 3rd (federation) blanket forms — let the data decide; don't impose 3 scales.

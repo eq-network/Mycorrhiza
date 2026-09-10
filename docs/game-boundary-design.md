@@ -1,8 +1,8 @@
 # Design: the agent↔environment boundary (GameSpec)
 
-*Deposited 2026-07-13 from a forest-walk design session (Stage 1–2, exploratory — verify
+*Deposited 2026-07-13 from a design session (exploratory — verify
 against Gymnax/JaxMARL interfaces and the open-games literature before treating as
-settled). Direction set by Jonas: environments must be MDP/Gym-sense game forms awaiting
+settled). Direction: environments must be MDP/Gym-sense game forms awaiting
 policies, not closed dynamical systems. This doc is the concrete shape.*
 
 **Status (2026-07-13, same day):** migration steps 1–4 implemented — `GameSpec`/`close`/

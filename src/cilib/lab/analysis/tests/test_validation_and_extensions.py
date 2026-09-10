@@ -1,5 +1,5 @@
 """
-Tests for the cold-read-driven analysis extensions:
+Tests for the review-driven analysis extensions:
 
   * dynamics-derived (stationary-weighted) effective information,
   * the estimator-validation gate (i.i.d. / single-scale nulls; no spurious interior peak),

@@ -35,7 +35,7 @@ Output is printed and saved to `results.txt`.
 - **Capture:** an exogenous hub-pull `c` concentrates the Shapley-EI attribution and erodes fit
   while the commons can still survive — capture is a measured consequence, not a definition.
 
-## How to read it honestly (epistemic status: Stage 1–2)
+## How to read it honestly (exploratory)
 - This is a **demonstration that the model produces the predicted signatures**, not calibrated
   empirical science. Resource parameters were chosen so tragedy is the default (atomized
   collapses) while fit-respecting enforced quotas are sustainable (see the note in `schema.py`).

@@ -1,8 +1,7 @@
 """
 Economy family — ALLOCATE (the GD game's three-family design).
 
-Build spec: ``round-table/gd-game-dynamics-2026-07-31/specs/economy.md``
-(Ilse Krantz, 2026-07-31); measured lever effects and the constraints:
+Build spec: the 2026-07-31 economy spec; measured lever effects and the constraints:
 ``docs/gd-game-three-families.md``.
 
 The verb is *allocate*: each tick the town's budget is split over

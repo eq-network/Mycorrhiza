@@ -1,8 +1,7 @@
 # The remote engine — live runs behind an endpoint
 
 > **ABANDONED 2026-08-01. Do not build on this, and do not deploy the service.**
-> Jonas's verdict on what this plan produced: really bad and essentially
-> worthless, and the work was not worth it. This is route B of two dead routes —
+> The game this plan produced was judged not worth continuing. This is route B of two dead routes —
 > live levers in policy tabs, which gives the player a form full of parameters
 > they do not understand. Making plans data widened the engine's input surface
 > without making it live; a request-response batch simulator is not real-time
@@ -10,7 +9,7 @@
 > [docs/gd-game-postmortem.md](gd-game-postmortem.md). Everything below is kept
 > as the history of what was tried, not as a plan.
 
-*Deposited 2026-07-31, decisions by Jonas the same day: the policy-tab game
+*Deposited 2026-07-31, decisions the same day: the policy-tab game
 the GD game is growing into cannot be precomputed, and the answer is a live
 engine server, with the tree-backed experience kept as the guided opening.
 Siblings: docs/gd-game-design.md (the tree game), docs/dial-lattice-design.md
@@ -87,7 +86,7 @@ extension under the same dated exception as the intervention events
 - Deploy target Fly.io/Cloud Run (~$5–15/mo warm); CORS pinned to
   eq-network.org. Not in scope here: the deployment itself.
 
-## 5. What stays where (the hybrid, Jonas 2026-07-31)
+## 5. What stays where (the hybrid, 2026-07-31)
 
 The tree-backed game remains the guided opening — instant, reliable,
 offline-safe — and absorbs the Civilization-style pacing work: backstory

@@ -1,8 +1,8 @@
 # service — the RemoteEngine (v0)
 
 > **DEAD 2026-08-01. Do not deploy, extend, or wire a front end to this.** The
-> policy-tab game it was written for was judged really bad and essentially
-> worthless by Jonas, and the work was not worth it. It is route B of two dead
+> policy-tab game it was written for was judged not worth
+> continuing. It is route B of two dead
 > routes: a stateless endpoint that re-runs from t=0 is submit-and-wait, not
 > the real-time editing a game needs, and the levers it exposes are model
 > internals a new player cannot read. See `docs/gd-game-postmortem.md` before

@@ -1,9 +1,9 @@
 # Observability & live-runner design — the state protocol
 
-Status: **design record, not yet built** (2026-07-28). Frame: `Forest Walk -
-Visualisation and Observability` (vault) and the strategy note in the same
-session. Maps onto kanban epic items **O0–O6**; this file refines them, it does
-not introduce a parallel scheme.
+Status: **design record, not yet built** (2026-07-28). Frame: the
+visualisation-and-observability design session and its strategy note. Maps onto
+the observability epic items **O0–O6**; this file refines them, it does not
+introduce a parallel scheme.
 
 ## Purpose (first principles)
 
@@ -312,7 +312,7 @@ engine, one protocol.
 
 - Does the phase-diagram view generalise beyond `value_contagion`'s two clean
   dials, or is `coupled_society`'s natural primary view something else entirely?
-- Does the editor round-trip into source (code-canonical, per the forest walk),
+- Does the editor round-trip into source (code-canonical, per the design session),
   or stay a read-only navigation layer over committed pipelines?
 - Where does the ensemble live in the protocol — is a `Record` one seed or a
   condition? (The walk argued the *experiment* is the primitive; this document

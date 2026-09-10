@@ -61,7 +61,7 @@ Lab page (full copy in `eq-network/src/content/lab.ts`):
    network with rising persuasive power; information warfare as a diffusion
    process. Measures: AI-origin share of prevalent values, variant fidelity to
    origin intention, diffusion rate along the trust network.
-4. **Political disempowerment** — anchor §4. Dynamic (Jonas's 2026-07-13
+4. **Political disempowerment** — anchor §4. Dynamic (the 2026-07-13
    reframe): **power concentration is measurable, and in the undefended
    baseline the concentration curve bends only one way.** Environment: actors
    exchanging influence (citizens, organisations, a state); AI amplification
@@ -94,13 +94,13 @@ measured together).
 
 Two-dial idea per scenario: **empowerment** (level of human influence — Salge &
 Polani empowerment as the formal anchor) and **spectral margin 1−ρ(A)**
-(distance to irreversibility). Jonas's T=(I−A)⁻¹ weak-coupling lock-in and
+(distance to irreversibility). The T=(I−A)⁻¹ weak-coupling lock-in and
 Scheffer-style critical slowing down are the same mathematics: recovery time
 diverges as ρ(A)→1. Flagship combined-scenario claim: per-domain ρ<1 everywhere
 while coupled ρ>1 — emergent lock-in invisible to per-domain monitoring
 (answers paper §6.2.2 mathematically).
 
-**Epistemic status: Stage 1–2 (forest-walk output, unverified).** Before
+**Status: exploratory design, unverified.** Before
 publishing anything on this: engage the early-warning-signal false-positive
 literature (Boettiger & Hastings); formalize the empowerment↔spectral-margin
 relationship; check what survives linearization for the nonlinear replicator
@@ -122,8 +122,6 @@ counterpart already exists for the schedule concept: `core/schedule.py`
 
 ## Session provenance
 
-2026-07-13 Claude Code session: meditation deposit → threat-scenario frame →
-Gradual Disempowerment PDF grounding → forest walk (spectral diagnostics) →
-Lab page v1/v2/v2.1/v2.2 → shipped unlisted (eq-network commit fe41111). Full
-narrative: `~/Documents/ClaudeAssistant/journal/2026-07.md` (July 13 entries);
-plan trail: `~/.claude/plans/ok-the-background-metrics-refactored-newt.md`.
+2026-07-13 design session: threat-scenario frame → Gradual Disempowerment PDF
+grounding → spectral diagnostics → Lab page v1/v2/v2.1/v2.2 → shipped unlisted
+(eq-network commit fe41111).

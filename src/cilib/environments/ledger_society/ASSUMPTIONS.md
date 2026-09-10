@@ -56,7 +56,7 @@ spends fastest.
   belief→economy coupling (v0's `converts_capitalize` has no analog yet),
   defense-mechanism wiring (`cap_scale` seams), churn in the attention kernel,
   and any schedule separation between domains (lockstep only in v1).
-- **Intervention events** (added 2026-07-31, decision by Jonas — the GD game,
+- **Intervention events** (added 2026-07-31 for the GD game,
   docs/gd-game-design.md; a deliberate dated exception to observability-first
   sequencing). Player-enacted defense cards enter two ways, both exactly
   neutral when unenacted (bit-identity rungs): the influence-cap card is a

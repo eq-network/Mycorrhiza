@@ -1,7 +1,7 @@
 # The cultural register — separation, persuasion, and spectral measurement
 
-*Deposited 2026-07-24 from a design session (forest walk + two source documents). Direction
-set by Jonas: apply the model-register epistemology to the cultural scenario (A3), and
+*Deposited 2026-07-24 from a design session over two source documents. Direction:
+apply the model-register epistemology to the cultural scenario (A3), and
 settle whether AI cultural disempowerment is about **separate AI cultures** or **more
 persuasive AI messages** — the answer is that these are two orthogonal axes, and the
 result is a phase diagram over them. Siblings: `docs/model-register-design.md` (the
@@ -10,7 +10,7 @@ supersedes its sketch), `docs/game-boundary-design.md` (the frozen boundary, and
 this design finally forces `close_multi`), `docs/alpha-plan.md` (phasing — A3 still sits
 behind A4).*
 
-**Epistemic status: Stage 1–2.** Forest-walk synthesis plus two unreviewed sources. The
+**Status: exploratory design.** A synthesis over two unreviewed sources. The
 verification list in §11 is not optional — several load-bearing claims (networked neutral
 drift, the attribution operator under recombination, whether ρ is settable or only
 measurable) are unresolved.
@@ -71,7 +71,7 @@ must score as a loss).
 ## 3. The substrate ensemble
 
 Three members, following the economy register's discipline (one classical anchor each, one
-honest dial, cards colocated). One deliberate change from the forest-walk draft: the
+honest dial, cards colocated). One deliberate change from the first draft: the
 DeGroot/opinion-averaging member is **dropped**, because A4 (`influence_exchange`) already
 owns DeGroot with the Golub–Jackson anchor — duplicating it across scenarios would buy no
 robustness. Its slot goes to the spectral model, which is the stronger third answer.

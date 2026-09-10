@@ -1,6 +1,6 @@
 # Gradual Disempowerment suite v0.1 — membership and the resource map
 
-*Deposited 2026-07-30. Direction set by Jonas: name the three WP models one suite,
+*Deposited 2026-07-30. Direction: name the three WP models one suite,
 group them in the library (`environments/suites.py`), and map the resources each model
 uses so the coupled rewrite (`docs/ledger-design.md`) starts from what actually exists.
 The inventory below is code-derived (declared reads/writes and dynamics read directly

@@ -3,7 +3,7 @@
 One BundleSpec per playground tab. Grids are IMPORTED from the WP experiment
 configs wherever a WP experiment defines them (single source; the papers'
 sweeps and the playground's dials cannot drift apart). The ledger_society grid
-is new (no experiment yet) — values flagged for Jonas at the Phase C review.
+is new (no experiment yet) — values flagged for review at Phase C.
 
 Axis `param_type` follows the house typing: anchored / tuned-for-legibility /
 arbitrary-but-swept; `anchor` carries the one-line justification (ordering
@@ -261,8 +261,8 @@ BUNDLES: Tuple[BundleSpec, ...] = (
         # the fully sealed twin (0,0,0) and the max corner (4,4,4) reachable
         playback=_subgrid((0, 3, 4), (0, 3, 4), (0, 2, 4)),
         T=800,   # the coupled system runs twice as long — lock-in needs time
-        notes=("NEW grid (no prior experiment) — dial values flagged for Jonas "
-               "at the review. Cell (0,0,0) is the fully sealed twin; the "
+        notes=("NEW grid (no prior experiment) — dial values flagged for "
+               "review. Cell (0,0,0) is the fully sealed twin; the "
                "regime axis resolves the funded-pressure knee against "
                "institutional repair. v2 ships the top-target index series + "
                "channel-magnitude globals that drive the flow scene."),

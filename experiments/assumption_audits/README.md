@@ -7,8 +7,8 @@ question and prints its numbers. Run from the repo root:
 `python -m experiments.assumption_audits.<script>`.
 
 Rescued from the 2026-07-27 session scratchpad that produced the lab-content review
-(eq-network repo, `docs/lab-content-review-2026-07-27.md`) and the cold-read panel
-(`cold-read/lab-assumptions-cards-2026-07-27/`). Scripts are kept verbatim as run that
+(eq-network repo, `docs/lab-content-review-2026-07-27.md`) and the reader panel on
+the assumptions cards. Scripts are kept verbatim as run that
 day; the numbers column records what they printed then. If coupled/political/cultural
 dynamics change, re-run and update the review doc's floor table **and** the website
 copy in the same commit (review rule 6).

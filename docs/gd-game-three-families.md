@@ -1,8 +1,7 @@
 # Three families of mechanics — economy, culture, politics
 
-> **ABANDONED AS A GAME DESIGN 2026-08-01.** Jonas's verdict on the game the
-> three families were built for: really bad and essentially worthless, and the
-> work was not worth it. The proposed shape in §4 — three tabs of levers on a
+> **ABANDONED AS A GAME DESIGN 2026-08-01.** The game the three families were
+> built for was judged not worth continuing. The proposed shape in §4 — three tabs of levers on a
 > live engine — is route B, and it is dead; see
 > [docs/gd-game-postmortem.md](gd-game-postmortem.md). What survives is
 > engine-side and is read as findings about `ledger_society`, not as a plan:
@@ -11,7 +10,7 @@
 > built and of the pure-tier sealing defect. All of it carries the provenance
 > that it exists because the game needed it.
 
-*Deposited 2026-07-31, direction set by Jonas: the design review produced
+*Deposited 2026-07-31. Direction: the design review produced
 scoring and presentation fixes but no new mechanics, and the game should
 carry three sets of dynamics around the economy, politics and culture.
 Siblings: docs/gd-game-design.md (the card game, built),
@@ -261,8 +260,8 @@ failure.
   write the broadcast column of `alloc_pref` — that is economy's conserved
   vector — and it does **not** charge enforcement upkeep, because `enforcement`
   has one writer. Its cost model ships as the pure function `culture_upkeep`,
-  which politics calls; the cost split crossing the brief is a ruling still open
-  with Jonas. Section 3's finding stands unchanged: `belief` is instrumented and
+  which politics calls; the cost split crossing the brief is a ruling still open.
+  Section 3's finding stands unchanged: `belief` is instrumented and
   causally disconnected from every scored outcome, so culture in this model
   means the attention kernel's shape and nothing else until that is decided.
 - **Politics** owns `enforcement` and pays the whole town's political bill. It

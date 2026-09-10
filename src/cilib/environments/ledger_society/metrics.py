@@ -12,7 +12,7 @@ Two scoring windows, same quantities:
   share curve: what the population actually lived through, tick by tick.
 
 The distinction is load-bearing for the GD game (docs/gd-game-dynamics-review.md
-§2b, decision by Jonas 2026-07-31: the game scores the entire journey, because
+§2b, decision 2026-07-31: the game scores the entire journey, because
 the player's choices are meant to matter). Probed the same day on harbor dials,
 8 seeds, medians, no CIs — ordering claim only: comparing one intervention
 enacted early against the same intervention enacted late, the late-window

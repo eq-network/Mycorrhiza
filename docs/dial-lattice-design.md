@@ -1,6 +1,6 @@
 # Dialed experiments on the web — the sweep-bundle / lattice plan
 
-*Deposited 2026-07-30, direction set by Jonas: visitors should be able to set
+*Deposited 2026-07-30. Direction: visitors should be able to set
 parameters and sweep the GD-suite models "in real time or something like it,"
 playground-style, without violating the engine⇄view boundary. Siblings: CLAUDE.md
 ⟦BOUNDARY⟧ (no hand-ports, crossings are versioned artifacts),

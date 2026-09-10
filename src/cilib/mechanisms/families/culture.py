@@ -1,7 +1,7 @@
 """
 Culture family — SHAPE. The kernel-shaping levers of the GD game's three-family
-design, built to round-table/gd-game-dynamics-2026-07-31/specs/culture.md
-(Dana Petrov, 2026-07-31) and docs/gd-game-three-families.md.
+design, built to the 2026-07-31 culture spec; measured lever effects and the
+constraints: docs/gd-game-three-families.md.
 
 The verb is *shape*: you cannot move attention directly, only the parameters
 governing how it moves, and they act with a lag. The attention ledger's time
@@ -47,8 +47,8 @@ is a design conjecture, not a measurement.
    may write. ``enforcement`` is the politics family's stock. The cost model is
    therefore exported as ``culture_upkeep``, a pure per-tick charge in
    enforcement units that whoever owns ``enforcement`` debits, and it is charged
-   nowhere in this module. Dana flagged the cost split as crossing the brief and
-   asked Jonas to rule; this leaves the coefficient priced and the ruling open.
+   nowhere in this module. The cost split was flagged as crossing the brief;
+   this leaves the coefficient priced and the ruling open.
 
 Parameter typing (house rule), probed 2026-07-31 where noted.
 """

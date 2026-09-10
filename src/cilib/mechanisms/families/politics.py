@@ -1,8 +1,7 @@
 """
 Politics family — SPEND (the GD game's three-family design).
 
-Build spec: ``round-table/gd-game-dynamics-2026-07-31/specs/politics.md``
-(Marcus Oyelaran, 2026-07-31); measured lever effects and the constraints:
+Build spec: the 2026-07-31 politics spec; measured lever effects and the constraints:
 ``docs/gd-game-three-families.md``.
 
 The verb is *spend*: ``enforcement`` is a bounded stock in [0, 1] that does two

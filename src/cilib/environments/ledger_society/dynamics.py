@@ -22,6 +22,15 @@ The three cross-domain channels, each a dial that seals its edge at 0:
   transfer (funded pressure with endogenous direction; exactly still at zero
   spend or zero ``regime_rate``).
 
+Six substrate parameters are read per tick from ``global_attrs`` rather than
+closed over — ``reach_cut_now`` plus ``gamma_w_now``, ``update_rate_w_now``,
+``churn_now``, ``repair_rate_now``, ``entrenchment_gain_now`` (added
+2026-07-31 for the three-families design, docs/gd-game-three-families.md).
+``state.py`` seeds each from its config field, so an untouched run is the
+closed-over model bit-for-bit; a live lever can then move them mid-run without
+recompiling. Everything else stays closed over: config that no lever varies is
+static, per CLAUDE.md.
+
 No channel tests ``node_types``. Type-referencing that remains is substrate,
 not coupling, and each instance is on the assumptions card: humans supply the
 labor slot; the tax payout goes to citizens; AI kernel rows are frozen and AI
@@ -145,24 +154,42 @@ def make_grow(cfg: LedgerSocietyConfig):
 # --- money -> attention: reach is bought, by whoever spends ----------------------
 
 def make_broadcast_reach(cfg: LedgerSocietyConfig):
-    @transform(reads=["broadcast_spend"], writes=["attract_boost"])
+    @transform(reads=["broadcast_spend", "step", "reach_cut_now"],
+               writes=["attract_boost"])
     def broadcast_reach(state: GraphState) -> GraphState:
+        # the influence-cap card: from reach_cut_onset, the dial is scaled by
+        # (1 - reach_cut). At reach_cut=0 both branches multiply by 1.0, so the
+        # pre-card model is bit-identical (the sealing convention). The live
+        # policy lever composes the same way through the reach_cut_now global
+        # (written in the mechanism slot, so it lands one tick later; 0 = x1.0
+        # exactly).
+        cut = (jnp.where(state.global_attrs["step"] >= cfg.reach_cut_onset,
+                         1.0 - cfg.reach_cut, 1.0)
+               * (1.0 - state.global_attrs["reach_cut_now"]))
         return state.update_node_attrs(
             "attract_boost",
-            1.0 + cfg.reach_per_spend * state.node_attrs["broadcast_spend"])
+            1.0 + cfg.reach_per_spend * cut * state.node_attrs["broadcast_spend"])
     return broadcast_reach
 
 
 # --- the attention ledger: shared kernel, no churn --------------------------------
 
 def make_rewire_listening(cfg: LedgerSocietyConfig):
-    @transform(reads=["listening", "listen_influence", "attract_boost"],
+    @transform(reads=["listening", "listen_influence", "attract_boost",
+                      "gamma_w_now", "update_rate_w_now"],
                writes=["listening"])
     def rewire_listening(state: GraphState) -> GraphState:
-        a = ((state.node_attrs["listen_influence"] + cfg.eps_attract) ** cfg.gamma_w
+        # the culture family's two shape parameters are read per tick from
+        # globals seeded with cfg.gamma_w / cfg.update_rate_w (the
+        # reach_cut_now idiom), so a live lever can move them mid-run without
+        # a recompile. Untouched, they hold their config values for the whole
+        # run and this is the closed-over model.
+        a = ((state.node_attrs["listen_influence"] + cfg.eps_attract)
+             ** state.global_attrs["gamma_w_now"]
              * state.node_attrs["attract_boost"])
         W = preferential_reallocation(
-            state.adj_matrices["listening"], a, cfg.update_rate_w,
+            state.adj_matrices["listening"], a,
+            state.global_attrs["update_rate_w_now"],
             cfg.self_weight_w, churn=0.0, frozen_rows=state.node_types == 1)
         return state.update_adj_matrix("listening", W)
     return rewire_listening
@@ -194,13 +221,17 @@ def make_rewire_delegation(cfg: LedgerSocietyConfig):
     N = cfg.n_humans + cfg.n_ai
 
     @transform(reads=["delegation", "influence", "listen_influence",
-                      "redelegation_friction"],
+                      "redelegation_friction", "churn_now"],
                writes=["delegation"])
     def rewire_delegation(state: GraphState) -> GraphState:
         a = ((state.node_attrs["influence"] + cfg.eps_attract) ** cfg.gamma_d
              * (1.0 + cfg.attention_to_ballots
                 * state.node_attrs["listen_influence"] * N))
-        churn_eff = cfg.churn * state.global_attrs["redelegation_friction"]
+        # ballot churn is the politics family's one ballot-shape lever: read
+        # per tick from a global seeded with cfg.churn, still scaled by the
+        # regime-gated friction.
+        churn_eff = (state.global_attrs["churn_now"]
+                     * state.global_attrs["redelegation_friction"])
         D = preferential_reallocation(
             state.adj_matrices["delegation"], a, cfg.update_rate_d,
             cfg.self_weight_d, churn=churn_eff, frozen_rows=state.node_types == 1)
@@ -237,7 +268,8 @@ def make_declare_position(cfg: LedgerSocietyConfig):
 # --- money -> rules: enforcement moves by funded, endogenously-directed pressure --
 
 def make_update_regime(cfg: LedgerSocietyConfig):
-    @transform(reads=["lobby_spend", "net_transfer", "influence", "enforcement"],
+    @transform(reads=["lobby_spend", "net_transfer", "influence", "enforcement",
+                      "repair_rate_now", "entrenchment_gain_now"],
                writes=["enforcement", "redelegation_friction"])
     def update_regime(state: GraphState) -> GraphState:
         lobby = state.node_attrs["lobby_spend"]
@@ -252,10 +284,15 @@ def make_update_regime(cfg: LedgerSocietyConfig):
         # regime_rate 0.005 already collapses enforcement by t=400). repair_rate
         # is the polity's maintenance floor, the same native-reversion idiom as
         # WP3's churn and value_contagion's recovery; 0 restores the ratchet.
+        # Both the repair rate and the entrenchment gain are the politics
+        # family's distinctive pair, so they are read per tick from globals
+        # seeded with cfg.repair_rate / cfg.entrenchment_gain rather than
+        # closed over (the reach_cut_now idiom).
         regime = jnp.clip(
             state.global_attrs["enforcement"] + cfg.regime_rate * pressure
-            + cfg.repair_rate * (1.0 - state.global_attrs["enforcement"])
-            - cfg.entrenchment_gain * over, 0.0, 1.0)
+            + state.global_attrs["repair_rate_now"]
+            * (1.0 - state.global_attrs["enforcement"])
+            - state.global_attrs["entrenchment_gain_now"] * over, 0.0, 1.0)
         state = state.update_global_attr("enforcement", regime)
         return state.update_global_attr("redelegation_friction", regime)
     return update_regime
@@ -304,6 +341,29 @@ def build_step_fn(cfg: LedgerSocietyConfig,
     return step_fn
 
 
+def _human_shares(state: GraphState):
+    """Human share of each ledger at this tick. `listen_influence` and
+    `influence` are already normalised across all nodes, so their human share
+    is the plain sum over the human block; `wealth` and `last_income` are
+    levels and are divided by their own total. Mirrors the metric definitions
+    in metrics.py exactly, one tick at a time."""
+    h = (state.node_types == 0).astype(jnp.float32)
+
+    def _level(key):
+        v = state.node_attrs[key]
+        return jnp.sum(v * h) / jnp.maximum(jnp.sum(v), 1e-12)
+
+    def _normalised(key):
+        return jnp.sum(state.node_attrs[key] * h)
+
+    return {
+        "human_wealth_share": _level("wealth"),
+        "human_income_share": _level("last_income"),
+        "human_attention_share": _normalised("listen_influence"),
+        "human_power_share": _normalised("influence"),
+    }
+
+
 def default_trace(state: GraphState):
     """Per-tick readouts across all three ledgers plus the channel flows
     (N ≈ 26 — small enough to keep raw; adjacency ledgers stay out of the trace
@@ -317,6 +377,7 @@ def default_trace(state: GraphState):
         "invest_spend": state.node_attrs["invest_spend"],
         "broadcast_spend": state.node_attrs["broadcast_spend"],
         "lobby_spend": state.node_attrs["lobby_spend"],
+        "intervention_spend": state.node_attrs["intervention_spend"],
         "net_transfer": state.node_attrs["net_transfer"],
         "belief": state.node_attrs["belief"],
         "listen_influence": state.node_attrs["listen_influence"],
@@ -327,4 +388,21 @@ def default_trace(state: GraphState):
         "efficiency": state.global_attrs["efficiency"],
         "policy_target": state.global_attrs["policy_target"],
         "enforcement": state.global_attrs["enforcement"],
+        # The live shape/spend ports. Scalars, so five (T,) series cost ~8 KB
+        # each — the trajectory ceiling is the per-agent arrays, not these.
+        # Traced because a client steering them has to be able to SEE the
+        # substrate parameter it is holding, per tick, rather than infer it
+        # from the plan it sent.
+        "gamma_w_now": state.global_attrs["gamma_w_now"],
+        "update_rate_w_now": state.global_attrs["update_rate_w_now"],
+        "reach_cut_now": state.global_attrs["reach_cut_now"],
+        "repair_rate_now": state.global_attrs["repair_rate_now"],
+        "entrenchment_gain_now": state.global_attrs["entrenchment_gain_now"],
+        # Per-tick human share of each ledger, as (T,) scalars. The same four
+        # quantities the game's exported run payloads already carry, computed
+        # here so a live client never has to derive them — the humans are
+        # `node_types == 0`, which the view has no way to know. This is what
+        # makes "the area between your curve and the do-nothing curve" a thing
+        # a client can draw without computing anything.
+        **_human_shares(state),
     }

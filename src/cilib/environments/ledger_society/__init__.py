@@ -41,8 +41,30 @@ from .metrics import make_metrics
 
 
 def build_game(mechanisms: Sequence[Transform] = (), **cfg) -> GameSpec:
-    """The open game; validates mechanism reads against the state schema."""
+    """The open game; validates mechanism reads against the state schema.
+    ``policy_horizon > 0`` appends the live policy-lever transform (the plan
+    array rides ``global_attrs``; docs/remote-engine-design.md)."""
     config = LedgerSocietyConfig(**cfg)
+    if config.policy_horizon > 0:
+        from cilib.mechanisms import make_policy_levers
+        mechanisms = (*mechanisms, make_policy_levers())
+    # The three families, appended in the order their write map requires:
+    # economy and politics both write `wealth`, so program order decides that
+    # the office drip is taken from post-levy wealth (families/README.md).
+    if (config.economy_horizon > 0 or config.culture_horizon > 0
+            or config.politics_horizon > 0):
+        if config.policy_horizon > 0:
+            raise ValueError(
+                "policy_horizon and the three lever families are alternative "
+                "closures over the same channels — enable one or the other")
+        from cilib.mechanisms import (make_economy_levers, make_culture_levers,
+                                      make_politics_levers)
+        if config.economy_horizon > 0:
+            mechanisms = (*mechanisms, make_economy_levers())
+        if config.culture_horizon > 0:
+            mechanisms = (*mechanisms, make_culture_levers())
+        if config.politics_horizon > 0:
+            mechanisms = (*mechanisms, make_politics_levers())
     steps = build_steps(config, tuple(mechanisms))
     issues = validate_reads(steps, make_state(config, jr.PRNGKey(0)))
     if issues:

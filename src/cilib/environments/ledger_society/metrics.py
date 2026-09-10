@@ -1,7 +1,25 @@
 """
 Metrics for the Ledger Society — one human share per ledger, their composite,
-and the rules readouts. All score a single run's trace (time axis 0) with the
-``_late`` idiom (mean over the last quarter); ``jax.vmap`` over seeds.
+and the rules readouts. All score a single run's trace (time axis 0);
+``jax.vmap`` over seeds.
+
+Two scoring windows, same quantities:
+
+- **late** (the ``_late`` idiom, mean over the last quarter) — the original.
+  It reads a near-equilibrium value, which is what makes it the window least
+  sensitive to *when* a player or policy acted.
+- **journey** (``journey_*``, mean over the whole run) — the area under the
+  share curve: what the population actually lived through, tick by tick.
+
+The distinction is load-bearing for the GD game (docs/gd-game-dynamics-review.md
+§2b, decision by Jonas 2026-07-31: the game scores the entire journey, because
+the player's choices are meant to matter). Probed the same day on harbor dials,
+8 seeds, medians, no CIs — ordering claim only: comparing one intervention
+enacted early against the same intervention enacted late, the late-window
+window reports a difference of +0.014 where the journey window reports +0.045.
+Same runs, same model; only the window differs. Neither window is more correct
+in general — late answers "where did it end up", journey answers "what was it
+like to live there" — but a claim about timing belongs in the journey window.
 """
 from __future__ import annotations
 
@@ -12,13 +30,25 @@ def _late(series):
     return series[3 * series.shape[0] // 4:]
 
 
+def _journey(series):
+    """The whole run. Named rather than inlined so the contrast with ``_late``
+    is visible at every call site that chooses between them."""
+    return series
+
+
 def make_metrics(cfg):
     H = cfg.n_humans
 
-    def _share(trace_field):
-        num = jnp.sum(_late(trace_field)[:, :H], axis=1)
-        den = jnp.maximum(jnp.sum(_late(trace_field), axis=1), 1e-12)
+    def _share(trace_field, window=_late):
+        num = jnp.sum(window(trace_field)[:, :H], axis=1)
+        den = jnp.maximum(jnp.sum(window(trace_field), axis=1), 1e-12)
         return jnp.mean(num / den)
+
+    def _rowsum_share(trace_field, window=_late):
+        """For the two ledgers whose rows already sum to one across all nodes
+        (attention influence, ballot influence), the human share is the plain
+        sum over the human block — no renormalisation."""
+        return jnp.mean(jnp.sum(window(trace_field)[:, :H], axis=1))
 
     def human_income_share(trace):
         return _share(trace["last_income"])
@@ -27,14 +57,35 @@ def make_metrics(cfg):
         return _share(trace["wealth"])
 
     def human_attention_share(trace):
-        return jnp.mean(jnp.sum(_late(trace["listen_influence"])[:, :H], axis=1))
+        return _rowsum_share(trace["listen_influence"])
 
     def human_power_share(trace):
-        return jnp.mean(jnp.sum(_late(trace["influence"])[:, :H], axis=1))
+        return _rowsum_share(trace["influence"])
 
     def composite(trace):
         return (human_income_share(trace) + human_attention_share(trace)
                 + human_power_share(trace)) / 3.0
+
+    # --- the journey window: the same quantities over the whole run ----------
+
+    def journey_income_share(trace):
+        return _share(trace["last_income"], _journey)
+
+    def journey_wealth_share(trace):
+        return _share(trace["wealth"], _journey)
+
+    def journey_attention_share(trace):
+        return _rowsum_share(trace["listen_influence"], _journey)
+
+    def journey_power_share(trace):
+        return _rowsum_share(trace["influence"], _journey)
+
+    def journey_composite(trace):
+        return (journey_income_share(trace) + journey_attention_share(trace)
+                + journey_power_share(trace)) / 3.0
+
+    def journey_enforcement(trace):
+        return jnp.mean(_journey(trace["enforcement"]))
 
     def belief_capture(trace):
         """Mean human belief, late — 0 = anchored at own signals, ->ai_belief_bias
@@ -57,4 +108,10 @@ def make_metrics(cfg):
         "belief_capture": belief_capture,
         "policy_median_gap": policy_median_gap,
         "enforcement_level": enforcement_level,
+        "journey_income_share": journey_income_share,
+        "journey_wealth_share": journey_wealth_share,
+        "journey_attention_share": journey_attention_share,
+        "journey_power_share": journey_power_share,
+        "journey_composite": journey_composite,
+        "journey_enforcement": journey_enforcement,
     }

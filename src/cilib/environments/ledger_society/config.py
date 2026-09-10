@@ -105,5 +105,51 @@ class LedgerSocietyConfig:
     attention_to_ballots: float = 2.0  # culture→politics port read (arbitrary-but-swept)
     # money→rules is regime_rate above (kept a single dial, not duplicated)
 
+    # --- intervention: the influence-cap card (docs/gd-game-design.md, 2026-07-31).
+    # A channel property, not a mechanism — a cap written in the mechanism slot
+    # would be overwritten before rewire_listening reads it, so it gates the
+    # money→attention dial in-transform (the delegative_polity onset idiom).
+    reach_cut: float = 0.0           # fraction of reach_per_spend removed from
+                                     # reach_cut_onset on; 0 = card not enacted,
+                                     # bit-identical to the pre-card model
+                                     # (tuned-for-legibility)
+    reach_cut_onset: int = 0         # tick the cap takes effect
+
     p_connect: float = 0.3           # ER density for both adjacency ledgers
+
+    # --- how insular the reservoir is (added 2026-08-01) --------------------------
+    # AI rows are frozen in both adjacency ledgers (the reservoir idiom: AI actors
+    # are listened and delegated TO, and their own row never drifts). That freezes
+    # them at the t=0 Erdos-Renyi draw, which points them mostly at HUMANS — an AI
+    # row sends ~0.69 of its attention and ~0.58 of its ballots to the human block
+    # and keeps doing so for the whole run. Measured consequence: the human
+    # attention share cannot fall below ~0.45 under ANY dial setting, including
+    # zero diagonal floors. That floor is an artifact of the initial draw, not a
+    # property of the coupling, so it gets a dial rather than staying hidden.
+    #
+    # ai_insularity is the share of a frozen AI row redirected into the AI block:
+    # 0 = the plain draw (bit-identical to the pre-dial model), 1 = AI actors
+    # attend to and delegate to each other only, and the human shares are free to
+    # fall to the diagonal floors. Applies to both ledgers — one dial, because
+    # "the reservoir talks to itself" is one assumption.
+    # (tuned-for-legibility; no paper — docs/ledger-design.md)
+    ai_insularity: float = 0.0
     eps: float = 1e-8
+
+    # --- live policy plans (docs/remote-engine-design.md, 2026-07-31) -----------
+    # >0 turns on the policy-lever game: the state carries a (policy_horizon, 4)
+    # plan array in global_attrs (a dynamic pytree child — plan VALUES never
+    # recompile) and build_game appends mechanisms.make_policy_levers. 0 = the
+    # card game and every existing run, bit-identical.
+    policy_horizon: int = 0
+
+    # --- the three lever families (docs/gd-game-three-families.md, 2026-07-31)
+    # Same contract as policy_horizon, one per family: >0 puts that family's
+    # (horizon, P) plan array in global_attrs as a dynamic pytree child and
+    # appends its transform in build_game. 0 = the family is absent and the
+    # model is bit-identical to the pre-family engine. The three compose as a
+    # sequenced bundle in the order (economy, culture, politics) — economy and
+    # politics both write `wealth`, deliberately (families/README.md).
+    economy_horizon: int = 0
+    culture_horizon: int = 0
+    politics_horizon: int = 0

@@ -24,8 +24,11 @@ LEDGERS = {
         "kind": "node stock",
         "units": "money",
         "sources": ("produce (mints Y per tick)", "init_wealth (t=0 endowment)"),
-        "sinks": ("allocate: consume / invest / broadcast / lobby leave the loop",),
-        "moved_by": ("tax_and_redistribute (conserving transfer)", "allocate"),
+        "sinks": ("allocate: consume / invest / broadcast / lobby leave the loop",
+                  "interventions: fund-repair drip (intervention_spend) leaves"
+                  " the loop buying enforcement"),
+        "moved_by": ("tax_and_redistribute (conserving transfer)", "allocate",
+                     "interventions (AI wealth levy — conserving transfer)"),
     },
     "listening": {
         "kind": "adjacency",
@@ -62,6 +65,33 @@ def _row_stochastic(N, p, self_weight, key):
     return self_weight * jnp.eye(N) + (1.0 - self_weight) * offdiag
 
 
+def _insulate(M, n_humans, n_ai, insularity, self_weight):
+    """Redirect a share of each frozen AI row's off-diagonal weight into the AI
+    block (``cfg.ai_insularity``; see the config note).
+
+    Rows stay stochastic and the diagonal floor is untouched, so this only
+    changes WHO a reservoir node points at, never how much it holds. At
+    ``insularity == 0`` the blend is ``1.0 * offdiag + 0.0 * inside``, which is
+    exact in floating point — the pre-dial model is bit-identical. With a single
+    AI actor there is no one else to point at, so the row is left alone.
+    """
+    if n_ai < 2:
+        return M
+    N = n_humans + n_ai
+    eye = jnp.eye(N)
+    is_ai_col = (jnp.arange(N) >= n_humans).astype(M.dtype)
+    # uniform over the OTHER AI actors, per row
+    inside = is_ai_col[None, :] * (1.0 - eye) / (n_ai - 1)
+
+    offdiag = M * (1.0 - eye)
+    mass = jnp.sum(offdiag, axis=1, keepdims=True)
+    off_norm = jnp.where(mass > 1e-12, offdiag / jnp.maximum(mass, 1e-12), offdiag)
+    blended = (1.0 - insularity) * off_norm + insularity * inside
+
+    ai_row = (jnp.arange(N) >= n_humans)[:, None]
+    return jnp.where(ai_row, self_weight * eye + (1.0 - self_weight) * blended, M)
+
+
 def make_state(cfg: LedgerSocietyConfig, key) -> GraphState:
     N = cfg.n_humans + cfg.n_ai
     k_w, k_d, k_ideal, k_sig, k_run = jr.split(key, 5)
@@ -91,6 +121,7 @@ def make_state(cfg: LedgerSocietyConfig, key) -> GraphState:
         "broadcast_spend": jnp.zeros(N, dtype=jnp.float32),
         "lobby_spend": jnp.zeros(N, dtype=jnp.float32),
         "net_transfer": jnp.zeros(N, dtype=jnp.float32),
+        "intervention_spend": jnp.zeros(N, dtype=jnp.float32),  # 5th declared sink
         "last_reward": jnp.zeros(N, dtype=jnp.float32),      # GameSpec hook
         # capacity
         "capital": jnp.zeros(N, dtype=jnp.float32),
@@ -115,13 +146,50 @@ def make_state(cfg: LedgerSocietyConfig, key) -> GraphState:
         "policy_target": jnp.array(cfg.true_rate, dtype=jnp.float32),
         "enforcement": jnp.array(1.0, dtype=jnp.float32),
         "redelegation_friction": jnp.array(1.0, dtype=jnp.float32),
+        # live policy port: the money->attention cut applied next tick
+        # (0 = exactly neutral; written by mechanisms.policy_levers)
+        "reach_cut_now": jnp.array(0.0, dtype=jnp.float32),
+        # --- live shape/spend ports (docs/gd-game-three-families.md, 2026-07-31).
+        # Five substrate parameters the culture and politics families need to
+        # vary DURING a run, promoted from closed-over config to per-tick
+        # globals (the reach_cut_now precedent, extended). Each initialises
+        # from its config field, so an untouched run is the pre-port model.
+        # No lever writes them yet — that is the next phase.
+        "gamma_w_now": jnp.array(cfg.gamma_w, dtype=jnp.float32),
+        "update_rate_w_now": jnp.array(cfg.update_rate_w, dtype=jnp.float32),
+        "churn_now": jnp.array(cfg.churn, dtype=jnp.float32),
+        "repair_rate_now": jnp.array(cfg.repair_rate, dtype=jnp.float32),
+        "entrenchment_gain_now": jnp.array(cfg.entrenchment_gain,
+                                           dtype=jnp.float32),
     }
+    if cfg.policy_horizon > 0:
+        # the plan is DATA, not config: a dynamic pytree child, so two plans
+        # of the same horizon share one compiled program (remote-engine R0)
+        global_attrs["policy_plan"] = jnp.zeros((cfg.policy_horizon, 4),
+                                                dtype=jnp.float32)
+    # The three lever families, same contract, one plan each. Widths come from
+    # the families' own lever tuples so a family that gains a column cannot
+    # drift from the state schema that has to carry it.
+    from cilib.mechanisms.families import (      # local: mechanisms import envs
+        CULTURE_LEVERS, ECONOMY_LEVERS, POLITICS_LEVERS)
+    for horizon, key, levers in (
+        (cfg.economy_horizon, "economy_plan", ECONOMY_LEVERS),
+        (cfg.culture_horizon, "culture_plan", CULTURE_LEVERS),
+        (cfg.politics_horizon, "politics_plan", POLITICS_LEVERS),
+    ):
+        if horizon > 0:
+            global_attrs[key] = jnp.zeros((horizon, len(levers)),
+                                          dtype=jnp.float32)
     return GraphState(
         node_types=node_types,
         node_attrs=node_attrs,
         adj_matrices={
-            "listening": _row_stochastic(N, cfg.p_connect, cfg.self_weight_w, k_w),
-            "delegation": _row_stochastic(N, cfg.p_connect, cfg.self_weight_d, k_d),
+            "listening": _insulate(
+                _row_stochastic(N, cfg.p_connect, cfg.self_weight_w, k_w),
+                cfg.n_humans, cfg.n_ai, cfg.ai_insularity, cfg.self_weight_w),
+            "delegation": _insulate(
+                _row_stochastic(N, cfg.p_connect, cfg.self_weight_d, k_d),
+                cfg.n_humans, cfg.n_ai, cfg.ai_insularity, cfg.self_weight_d),
         },
         edge_attrs={},
         global_attrs=global_attrs,

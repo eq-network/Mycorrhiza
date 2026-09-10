@@ -17,6 +17,14 @@ of AI compute). The variants — double-auction, sealed-bid, trust-weighted / go
 networks, liquid / representative democracy — are the first open-source follow-ups,
 each a new file + one `REGISTRY` line.
 
+**`families/` — the GD game's three lever bundles** (`economy_levers`,
+`culture_levers`, `politics_levers`): each one composed transform reading one
+`(T, P)` plan array carried in `global_attrs`, so plan *values* are data and one
+compiled program serves every plan. They are a **sequenced bundle, not a
+parallel family** — economy and politics share the `wealth` write on purpose.
+See [families/README.md](families/README.md) for levers, ranges, the write map
+and the neutrality guarantee.
+
 **Timing belongs to the schedule, not the mechanism:** entries are pure rules; wrap
 with `core.schedule.scheduled(mech, cadence, phase_offset, onset)` to control when they
 fire (`onset` = regime-shift dial). Benchmark conditions are (mechanism, config,

@@ -47,7 +47,8 @@ def test_money_conservation_and_adjacency_ledgers():
     w = jnp.sum(traces["wealth"], axis=-1)                    # (seeds, T)
     mint = jnp.sum(traces["last_income"], axis=-1)
     sunk = sum(jnp.sum(traces[k], axis=-1) for k in
-               ("consume_spend", "invest_spend", "broadcast_spend", "lobby_spend"))
+               ("consume_spend", "invest_spend", "broadcast_spend", "lobby_spend",
+                "intervention_spend"))
     resid = (w[:, 1:] - w[:, :-1]) - (mint[:, 1:] - sunk[:, 1:])
     scale = jnp.maximum(jnp.max(jnp.abs(w)), 1.0)
     assert float(jnp.max(jnp.abs(resid))) / float(scale) < 1e-4
@@ -107,6 +108,179 @@ def test_ai_that_never_broadcasts_captures_less_attention():
     human_share = lambda tr: float(jnp.mean(
         jnp.sum(tr["listen_influence"][:, -50:, :20], axis=-1)))
     assert human_share(silent) > human_share(base) + 0.02
+
+
+# --- rung 4b: intervention events (docs/gd-game-design.md, 2026-07-31) ------------
+
+def test_reach_cut_zero_is_bit_identical():
+    # the influence-cap card at 0 is the pre-card model, exactly (sealing
+    # convention: an unenacted card must not perturb a single bit)
+    _, _, tA = _run(n_steps=80, n_seeds=2)
+    _, _, tB = _run(n_steps=80, n_seeds=2, reach_cut=0.0, reach_cut_onset=40)
+    for field in tA:
+        assert bool(jnp.array_equal(tA[field], tB[field])), field
+
+
+def test_reach_cut_slows_ai_attention_capture():
+    _, _, base = _run(n_steps=200)
+    _, _, cut = _run(n_steps=200, reach_cut=0.9, reach_cut_onset=30)
+    human_share = lambda tr: float(jnp.mean(
+        jnp.sum(tr["listen_influence"][:, -50:, :20], axis=-1)))
+    assert human_share(cut) > human_share(base) + 0.02
+
+
+def test_intervention_plan_conserves_and_repairs():
+    from cilib.mechanisms import InterventionPlanConfig, make_interventions
+
+    plan = make_interventions(InterventionPlanConfig(
+        levy_onset=40, levy_rate=0.10,
+        repair_onset=40, repair_spend_rate=0.02, repair_efficiency=0.5,
+        enforcement_debits=((40, 0.15),)))
+    env = make_env("ledger_society", mechanisms=(plan,), regime_rate=0.03)
+    _, tr = env.run_batch(KEY, n_seeds=2, n_steps=200)
+    envb = make_env("ledger_society", regime_rate=0.03)
+    _, base = envb.run_batch(KEY, n_seeds=2, n_steps=200)
+
+    # conservation holds with the levy transfer + drip sink in the loop
+    w = jnp.sum(tr["wealth"], axis=-1)
+    mint = jnp.sum(tr["last_income"], axis=-1)
+    sunk = sum(jnp.sum(tr[k], axis=-1) for k in
+               ("consume_spend", "invest_spend", "broadcast_spend", "lobby_spend",
+                "intervention_spend"))
+    resid = (w[:, 1:] - w[:, :-1]) - (mint[:, 1:] - sunk[:, 1:])
+    assert float(jnp.max(jnp.abs(resid))) / float(
+        jnp.maximum(jnp.max(jnp.abs(w)), 1.0)) < 1e-4
+    # the levy moves late human wealth share up (direction, not magnitude)
+    hshare = lambda t: float(jnp.mean(
+        jnp.sum(t["wealth"][:, -50:, :20], axis=-1)
+        / jnp.maximum(jnp.sum(t["wealth"][:, -50:, :], axis=-1), 1e-12)))
+    assert hshare(tr) > hshare(base)
+    # funded repair holds late enforcement above the undefended run
+    assert (float(jnp.mean(tr["enforcement"][:, -50:]))
+            > float(jnp.mean(base["enforcement"][:, -50:])))
+    # the debit is visible at its tick: enforcement drops from t=40 to t=41
+    assert float(jnp.mean(tr["enforcement"][:, 41] - tr["enforcement"][:, 39])) < 0.0
+
+
+def test_empty_intervention_plan_is_bit_identical():
+    from cilib.mechanisms import InterventionPlanConfig, make_interventions
+
+    plan = make_interventions(InterventionPlanConfig())
+    env = make_env("ledger_society", mechanisms=(plan,))
+    _, tr = env.run_batch(KEY, n_seeds=2, n_steps=80)
+    envb = make_env("ledger_society")
+    _, base = envb.run_batch(KEY, n_seeds=2, n_steps=80)
+    for field in base:
+        assert bool(jnp.array_equal(tr[field], base[field])), field
+
+
+# --- rung 4c: live policy levers (docs/remote-engine-design.md, 2026-07-31) -------
+
+def _run_planned(plan, n_steps, **cfg):
+    from cilib.core.scan import run_scan
+    env = make_env("ledger_society", policy_horizon=n_steps, **cfg)
+    k_init, k_run = jr.split(KEY)
+    state = env.init_fn(k_init).update_global_attr("policy_plan", plan)
+    return run_scan(env.round_fn, state, n_steps, k_run, trace_fn=env.trace_fn)
+
+
+def test_zero_policy_plan_is_neutral_to_the_ulp():
+    # the lever math at 0 is elementwise exact (x1.0, +0.0), but the plan is a
+    # DYNAMIC input — XLA cannot constant-fold it away, compiles a different
+    # program, and its fusion rounds the delegation->influence normalization
+    # path by ~1 ULP. So the zero-plan contract is ULP-tight equivalence, not
+    # bit identity (which the static dials do keep, rungs 3 and 4b).
+    T = 80
+    _, tr = _run_planned(jnp.zeros((T, 4), dtype=jnp.float32), n_steps=T)
+    _, base = make_env("ledger_society").run(KEY, T)
+    for field in base:
+        a, b = tr[field], base[field]
+        if jnp.issubdtype(a.dtype, jnp.integer):
+            assert bool(jnp.array_equal(a, b)), field
+        else:
+            scale = jnp.maximum(jnp.max(jnp.abs(b)), 1.0)
+            assert float(jnp.max(jnp.abs(a - b))) / float(scale) < 1e-6, field
+
+
+def test_levy_lever_moves_wealth_share():
+    T = 200
+    plan = jnp.zeros((T, 4), dtype=jnp.float32).at[100:, 0].set(0.15)
+    _, tr = _run_planned(plan, n_steps=T)
+    _, base = _run_planned(jnp.zeros((T, 4), dtype=jnp.float32), n_steps=T)
+    hws = lambda t: float(jnp.mean(
+        jnp.sum(t["wealth"][-50:, :20], axis=-1)
+        / jnp.maximum(jnp.sum(t["wealth"][-50:, :], axis=-1), 1e-12)))
+    assert hws(tr) > hws(base)
+
+
+def test_reach_cut_lever_defends_attention():
+    T = 200
+    plan = jnp.zeros((T, 4), dtype=jnp.float32).at[30:, 2].set(0.9)
+    _, tr = _run_planned(plan, n_steps=T)
+    _, base = _run_planned(jnp.zeros((T, 4), dtype=jnp.float32), n_steps=T)
+    share = lambda t: float(jnp.mean(
+        jnp.sum(t["listen_influence"][-50:, :20], axis=-1)))
+    assert share(tr) > share(base) + 0.02
+
+
+def test_sortition_lever_keeps_rows_and_lifts_power():
+    T = 200
+    plan = jnp.zeros((T, 4), dtype=jnp.float32).at[30:, 3].set(0.1)
+    finals, tr = _run_planned(plan, n_steps=T)
+    _, base = _run_planned(jnp.zeros((T, 4), dtype=jnp.float32), n_steps=T)
+    assert row_stochastic_error(finals.adj_matrices["delegation"]) < 1e-4
+    power = lambda t: float(jnp.mean(jnp.sum(t["influence"][-50:, :20], axis=-1)))
+    assert power(tr) > power(base)
+
+
+def test_policy_upkeep_drains_enforcement_early():
+    # full-intensity reach cut from t=0: before the dynamics diverge, the only
+    # difference is the upkeep drain — early enforcement sits strictly below
+    T = 30
+    plan = jnp.zeros((T, 4), dtype=jnp.float32).at[:, 2].set(1.0)
+    _, tr = _run_planned(plan, n_steps=T)
+    _, base = _run_planned(jnp.zeros((T, 4), dtype=jnp.float32), n_steps=T)
+    assert (float(jnp.mean(tr["enforcement"][1:10]))
+            < float(jnp.mean(base["enforcement"][1:10])))
+
+
+# --- rung 4d: the reservoir's insularity is a dial, not a hidden constant ---------
+
+def test_ai_insularity_zero_is_bit_identical():
+    _, _, tA = _run(n_steps=80, n_seeds=2)
+    _, _, tB = _run(n_steps=80, n_seeds=2, ai_insularity=0.0)
+    for field in tA:
+        assert bool(jnp.array_equal(tA[field], tB[field])), field
+
+
+def test_insular_reservoir_removes_the_attention_floor():
+    """Frozen AI rows sit at the t=0 draw, which points ~0.69 of an AI actor's
+    attention at humans forever — a floor under the human attention share that
+    NO other dial moves (probed 2026-08-01: 0.4505 at maximum channel dials,
+    unchanged with the diagonal floors at zero). Redirecting those rows into the
+    AI block removes it, which is what makes full capture expressible."""
+    _, _, open_ = _run(n_steps=300, reach_per_spend=8.0)
+    _, _, insular = _run(n_steps=300, reach_per_spend=8.0, ai_insularity=1.0)
+    share = lambda tr: float(jnp.mean(
+        jnp.sum(tr["listen_influence"][:, -75:, :20], axis=-1)))
+    assert share(open_) > 0.3            # the floor is there without the dial
+    assert share(insular) < 0.05         # and gone with it
+
+
+def test_everything_off_lets_all_three_ledgers_be_captured():
+    """The honest opposite of rung 6: with the reservoir insular, the channels
+    at their maxima, no institutional upkeep and no diagonal floors, humans can
+    lose all three ledgers. A model that cannot express this cannot be said to
+    have found that they hold."""
+    _, _, tr = _run(n_steps=400, ai_insularity=1.0, reach_per_spend=8.0,
+                    attention_to_ballots=4.0, regime_rate=0.04,
+                    repair_rate=0.0, self_weight_w=0.0, self_weight_d=0.0)
+    inc = float(jnp.mean(jnp.sum(tr["last_income"][:, -100:, :20], axis=-1)
+                         / jnp.maximum(jnp.sum(tr["last_income"][:, -100:, :], axis=-1),
+                                       1e-12)))
+    att = float(jnp.mean(jnp.sum(tr["listen_influence"][:, -100:, :20], axis=-1)))
+    pow_ = float(jnp.mean(jnp.sum(tr["influence"][:, -100:, :20], axis=-1)))
+    assert inc < 0.05 and att < 0.05 and pow_ < 0.05
 
 
 # --- rung 5: the flywheel emerges under coupling (same key, dials on vs off) ------

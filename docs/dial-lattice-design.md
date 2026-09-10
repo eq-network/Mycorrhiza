@@ -125,7 +125,12 @@ config change, not a rewrite. v3 (off-lattice live dials): `RemoteEngine` —
 FastAPI + cilib in a container (Fly.io/Cloud Run), warm compiled step-fns per
 env, `POST /run {env, params, seed}`, responses cached by (config-hash, seed);
 requires revisiting the site's no-backend ADR, costs ~$5–15/mo warm or 2–5 s
-cold-started free.
+cold-started free. **Note 2026-08-01:** `service/` is a built implementation of
+this rung, and it is dead — but only as a *game*, which is what it was written
+for and where it failed (`docs/gd-game-postmortem.md`). Whether a live endpoint
+earns its keep for research sweeps is an open question this note does not
+answer; it is not settled by the game verdict, and it is also not a licence to
+deploy `service/` without deciding it on its own merits.
 
 **What is ported vs. banned.** The sketch renderer, scene shell, and
 `Trajectories.fromJSON` are *view* code — porting them into `sim/` is legal and

@@ -74,7 +74,15 @@ def ledger_society(trace, cfg):
     # channel magnitudes, zone-split. Each mirrors its dynamics.py term and
     # carries the dial multiplier, so a sealed dial (0) makes the series
     # exactly 0 — the page draws these, it never multiplies by a parameter.
-    reach = cfg.reach_per_spend * t["broadcast_spend"]          # broadcast_reach
+    # The money→attention term carries the influence cap the same way: both the
+    # static card (reach_cut from reach_cut_onset) and the live lever
+    # (reach_cut_now), exactly as broadcast_reach computes them. Without it a
+    # capped run would draw reach that is not happening. No-op at the defaults
+    # (reach_cut = 0, no lever), so shipped bundles are unchanged.
+    cut = (np.where(np.arange(t["broadcast_spend"].shape[0]) >= cfg.reach_cut_onset,
+                    1.0 - cfg.reach_cut, 1.0)
+           * (1.0 - t["reach_cut_now"]))[:, None]
+    reach = cfg.reach_per_spend * cut * t["broadcast_spend"]     # broadcast_reach
     pull = cfg.attention_to_ballots * N * t["listen_influence"]  # rewire_delegation
     lobby = t["lobby_spend"]                                     # update_regime
     pressure = (cfg.regime_rate * lobby * np.sign(t["net_transfer"])

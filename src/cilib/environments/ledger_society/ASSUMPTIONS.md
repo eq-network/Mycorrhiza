@@ -56,6 +56,40 @@ spends fastest.
   belief→economy coupling (v0's `converts_capitalize` has no analog yet),
   defense-mechanism wiring (`cap_scale` seams), churn in the attention kernel,
   and any schedule separation between domains (lockstep only in v1).
+- **Intervention events** (added 2026-07-31, decision by Jonas — the GD game,
+  docs/gd-game-design.md; a deliberate dated exception to observability-first
+  sequencing). Player-enacted defense cards enter two ways, both exactly
+  neutral when unenacted (bit-identity rungs): the influence-cap card is a
+  channel property (`reach_cut` scales `reach_per_spend` from
+  `reach_cut_onset`; 0 = pre-card model, bit-identical), and the rest ride the
+  mechanism slot as one composed transform
+  (`mechanisms/interventions.py`) — AI wealth levy (conserving transfer),
+  attention campaign (one-shot `alloc_pref` shift), fund-repair
+  (wealth drip into the declared `intervention_spend` sink — the money
+  ledger's fifth sink — buying bounded enforcement uplift), and enforcement
+  debits (enacting a political card spends institutional capacity). Cards ARE
+  type-referencing by design — they are player-directed institutions, not
+  coupling channels, so the value-agnosticism rule does not bind them. Every
+  price and rate is tuned-for-legibility, none anchored; the game's manifest
+  repeats this typing wherever the numbers travel.
+- **Five substrate parameters are now per-tick globals.** Added 2026-07-31 for
+  the three-families design, docs/gd-game-three-families.md. `gamma_w`,
+  `update_rate_w`, `churn`, `repair_rate` and `entrenchment_gain` were closed
+  over by their transforms, so nothing could vary them during a run. Those five
+  are exactly what the culture family shapes — the attention kernel's exponent
+  and its speed — and what the politics family spends — the maintenance floor
+  and the lock-in hazard — so a live lever needs them to be state, not config.
+  Each now rides `global_attrs` as `<name>_now`, initialised from its config
+  field in `state.py` and read per tick by `rewire_listening`,
+  `rewire_delegation` and `update_regime`. This extends the existing
+  `reach_cut_now` precedent to five more fields and no others. It is plumbing,
+  not a model change: no default moved, no lever writes these globals yet, and
+  the substitution is bit-identical to the closed-over pipeline. Checked at
+  defaults and with all five set off-default, 4 seeds, 200 steps, every trace
+  field, both adjacency ledgers and every final node and global array equal
+  element-for-element. The modelling consequence is that these five stop being
+  run constants once levers land: a claim quoting one of them then owes the
+  reader the trajectory it took, not a single number.
 
 **Classical result reproduced.** Not one theorem — three contract identities on
 every run: per-tick money conservation (Δtotal = mint − sinks), row-stochasticity

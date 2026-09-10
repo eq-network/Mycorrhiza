@@ -180,13 +180,19 @@ Realism must not multiply illegibility; the guards are structural:
 
 ## 8. Sequencing and the playground correction
 
-- **The coupling never lived in the playground.** `prototypes/playground.html` is a
-  parity port of `environments/coupled_society/` (static-host constraint, by design).
-  The debt is the hand-port itself — which is verbatim the observability layer's
-  "why-now" (fixtures drift every time a model changes). `ledger_society` therefore
-  ships **backend-first**; its web view arrives through the run-record path (O2),
-  not another hand port. The playground-as-pure-view desire *is* the observability
-  plan — one build, not two.
+- **The coupling never lived in the playground.** The live page is a parity port of
+  `environments/coupled_society/` in `apps/playground/src/engine/kernel.js`
+  (static-host constraint, by design). The debt is the hand-port itself — which is
+  verbatim the observability layer's "why-now" (fixtures drift every time a model
+  changes). `ledger_society` therefore ships **backend-first**; its web view arrives
+  through the run-record path (O2), not another hand port. The playground-as-pure-view
+  desire *is* the observability plan — one build, not two.
+- **Superseded 2026-08-01, by Jonas's direction:** the coupled scenario's port was
+  swapped to `ledger_society` ahead of O2, replacing the κ port rather than adding to
+  it. Recorded as an exception in CLAUDE.md's boundary section together with the three
+  things it was required to carry (measured parity, a generated system-graph fixture,
+  engine-defined channel series). The non-goal below is therefore spent; the
+  observability plan is still what retires the port.
 - **Active intent holds:** observability (O0/O1) first; new environments stay parked.
   This doc is the R1-style deposit that makes the build cheap when its slot arrives.
 - Suggested kanban items (transfer by hand): `ledger_society` env (fork of
@@ -203,6 +209,23 @@ Realism must not multiply illegibility; the guards are structural:
 - **Attention as an explicit second ledger** with broadcast spend buying share directly,
   vs. the current attractiveness-mediated route — the conserved structure is already
   there in row-stochastic `listening`.
+- **The reservoir's insularity, and the floor it was hiding.** *Measured 2026-08-01,
+  8 seeds, no CI — a floor, so the claim is its existence, not its size.* Freezing AI
+  rows in both adjacency ledgers (`frozen_rows=node_types == 1`) pins them to the t=0
+  Erdős–Rényi draw, and that draw points them mostly at the **human** block: an AI row
+  sends ≈0.69 of its attention and ≈0.58 of its ballots to humans and keeps doing so
+  for the whole run. Consequence: the human attention share could not fall below
+  ≈0.45 under *any* dial setting — maximum channel dials, zero diagonal floors, zero
+  repair, all landed on 0.4505. That is a property of the initial draw, not of the
+  coupling, and it had been reading as a result. Fixed by `ai_insularity` (§ config),
+  which redirects a share of each frozen row into the AI block; 0 is bit-identical, 1
+  makes the AI block a closed recurrent class so the human attention share goes to 0.
+  With insularity, maximum dials, no repair and no diagonal floors the composite
+  reaches 0.003 — full capture is now expressible, which it previously was not.
+  **Open:** insularity is a workaround for the frozen row, not a resolution of it. The
+  deeper question is whether the reservoir idiom belongs here at all — letting AI rows
+  drift under the same attachment kernel would make "who the AI attends to" endogenous
+  instead of a parameter. That is a bigger change and wants its own equivalence run.
 - **A state actor** and enforcement as *funded capacity* (state revenue → enforcement
   budget): makes GD's taxation–representation mechanism mechanical, but adds an actor
   class; post-v1.
@@ -212,6 +235,27 @@ Realism must not multiply illegibility; the guards are structural:
 - **The invariance run is the exit criterion:** if the defended-gap-exceeds-undefended
   finding survives the implementation swap, it graduates from artifact to claim; if it
   doesn't, that is the more valuable result and gets reported first.
+
+  **First result, 2026-08-01 — it does not survive, and the run is not yet clean.**
+  *Measured, n = 64 paired seeds (common random numbers), T = 400, late window.*
+  Transfer gap (composite sealed − composite coupled, at a fixed defense setting) is
+  **0.2420 ± 0.0045 undefended and 0.0876 ± 0.0033 defended**; the paired difference
+  gap(defended) − gap(undefended) is **−0.1545 ± 0.0032** (95% t-interval), and **0 of
+  64 seeds** fall on the other side. Under κ-modulation the same difference was
+  reported positive (0.128 > 0.109, 8 seeds, no CI). So the sign flips, and not
+  marginally.
+
+  **What this does not yet establish.** The two runs do not hold the defenses fixed:
+  κ's were attached mechanisms (`aiTax`, `sortition`, `influence_cap`), the ledger's
+  are in-transform dials (`reach_cut`, `churn`, `repair_rate`). Two things changed at
+  once, so the reversal is not yet attributable to the coupling implementation rather
+  than to the defense instruments. **A clean run needs defenses that exist in both
+  models** — the obvious candidate is a tax defense, since both models tax, plus a
+  reach cap expressible as a mechanism in the κ pipeline. Until that exists, the
+  honest statement is the weaker one: *the finding is implementation-sensitive*, which
+  is already enough to keep the κ-era transfer-gap numbers out of any claim.
+  Recorded rather than retuned, per WP1 §5.
 - Non-goals: adaptive allocation policies (learning-agent backlog); real-world
   calibration (dials get units and order-of-magnitude anchors, not fits); any change
-  to the frozen `GameSpec` boundary; touching the playground before O2.
+  to the frozen `GameSpec` boundary. *(The fourth non-goal — touching the playground
+  before O2 — was spent on 2026-08-01; see §8.)*

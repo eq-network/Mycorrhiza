@@ -75,7 +75,10 @@ and the row-stochastic attachment kernel, not the scan.
   bit-identity test, since an eager scan and a jitted scan can round differently
   once XLA fuses across the step (the postmortem's sealing finding).
 - **Persistent compile cache for the test suite.** One config line, about 3x
-  on cold repeats of identical programs. It does not remove the re-trace.
+  on cold repeats of identical programs (measured on one environment, not yet
+  on the suite). It does not remove the re-trace. Jit at the boundary helps the
+  suite less than it helps studies, because most tests build a fresh
+  environment per call and a fresh closure is a fresh compile either way.
 - **The structured case first: the economy environments' `(N, N)` recipe.**
   Index the sector block and build the one-hot as `(N, S)` instead; three
   quadratic products per tick become `N x S`, and the equivalence is a
@@ -91,10 +94,15 @@ and the row-stochastic attachment kernel, not the scan.
 
 ## What we do not know yet
 
-- **Why the full test suite takes 1 h 42 min on this machine.** Compile
-  alone at 0.3 to 0.9 s does not account for 17 s per test unless tests
-  compile tens of programs each. Per-test durations are the missing
-  measurement; see the section below once it lands.
+- **Why one full test run took 1 h 42 min.** It did not reproduce: the same
+  command, same revision, later the same day took 6 min 21 s for 353 tests
+  (`test-durations-2026-09-10.txt`). Call time totals 361 s over the 296 tests
+  pytest timed, about 1.2 s per test, which is one to three compiles each: the
+  suite is compile-bound, as finding 2 predicts, and the slow reading was a
+  property of the machine during that hour (power management or other load,
+  not recorded), not of the suite. The two heaviest items are the
+  `08_streaming_metrics` example smoke test (51 s on its own) and the
+  `ledger_society` ladder (47 s over 21 tests); together a third of the total.
 - **Whether a single-seed run uses more than one core.** The super-linear seed
   efficiency is consistent with a single seed leaving most of the CPU idle.
   Thread utilisation was not measured.

@@ -1,0 +1,53 @@
+python -m pytest -q --durations=0    # 2026-09-10, rev c9e3b35, jax 0.9.0, CPU (12 cores), CPU otherwise idle
+353 passed in 381.68s (0:06:21)
+
+call time: 296 timed tests, 361 s total (entries under 5 ms hidden by pytest)
+
+slowest 30 (call/setup):
+50.99s call     tests/test_examples.py::test_example_smoke[08_streaming_metrics.py]
+19.61s setup    tests/test_library_explainer.py::test_manifest_checksums_match_files
+8.57s call     src/cilib/environments/coupled_society/tests/test_composition.py::test_transfer_gap_null_then_positive
+7.54s call     tests/test_suites.py::test_gd_v01_members_build_and_step
+6.18s call     tests/test_examples.py::test_example_smoke[04_benchmark_commons.py]
+6.14s call     tests/test_examples.py::test_example_smoke[07_sparse_scaling.py]
+4.78s call     tests/test_examples.py::test_example_smoke[06_cultural_contagion.py]
+4.15s call     src/cilib/environments/ledger_society/tests/test_ladder.py::test_money_conservation_and_adjacency_ledgers
+4.09s call     src/cilib/environments/commons_harvest/tests/test_substrate.py::test_acceptance_tragedy_vs_sustained
+4.08s call     src/cilib/environments/value_contagion/tests/test_substrate.py::test_four_corner_regimes_separate
+3.47s call     src/cilib/environments/tests/test_sparse_networks.py::test_generators_are_all_convertible
+3.45s call     src/cilib/lab/paradigms/polycentric/tests/test_mechanism.py::test_run_batch_shapes_and_reproducible
+3.34s call     src/cilib/environments/ledger_society/tests/test_ladder.py::test_intervention_plan_conserves_and_repairs
+3.30s call     src/cilib/environments/value_contagion/tests/test_substrate.py::test_run_batch_shapes_and_metric_range
+3.21s call     src/cilib/environments/tests/test_sparse_networks.py::test_padding_above_actual_count_is_harmless
+3.17s call     src/cilib/environments/ledger_society/tests/test_ladder.py::test_humans_who_buy_reach_gain_attention
+2.93s call     src/cilib/environments/value_contagion/tests/test_sparse_equivalence.py::test_batched_trajectories_and_metrics_are_identical
+2.93s call     src/cilib/environments/ledger_society/tests/test_ladder.py::test_coupled_composite_below_sealed
+2.80s call     src/cilib/environments/delegative_polity/tests/test_validation_ladder.py::test_organic_preferential_attachment_concentrates
+2.72s call     src/cilib/environments/ledger_society/tests/test_ladder.py::test_sealed_domains_are_bit_identical_under_economy_dial_change
+2.71s call     src/cilib/environments/compute_economy/tests/test_pipeline_equivalence.py::test_compiled_equals_sequential_with_fiscal_mechanisms
+2.70s call     src/cilib/environments/ledger_society/tests/test_ladder.py::test_insular_reservoir_removes_the_attention_floor
+2.69s call     src/cilib/environments/value_contagion/tests/test_reduced_metrics.py::test_reducer_matches_across_a_batched_sweep
+2.65s call     src/cilib/environments/ledger_society/tests/test_ladder.py::test_ai_that_never_broadcasts_captures_less_attention
+2.60s call     src/cilib/environments/value_contagion/tests/test_sparse_equivalence.py::test_trajectory_is_identical_at_every_corner
+2.53s call     src/cilib/environments/ledger_society/tests/test_ladder.py::test_reach_cut_zero_is_bit_identical
+2.48s call     src/cilib/environments/value_contagion/tests/test_reduced_metrics.py::test_reducer_matches_the_metric_at_every_corner
+2.47s call     src/cilib/environments/commons_harvest/tests/test_substrate.py::test_run_batch_shapes_and_evaluate
+2.44s call     src/cilib/environments/tests/test_sparse_networks.py::test_nse_bound_holds_across_the_register_corners
+2.43s call     src/cilib/environments/ledger_society/tests/test_ladder.py::test_empty_intervention_plan_is_bit_identical
+
+call time by module, top 15:
+      75 s  tests/test_examples.py
+      47 s  src/cilib/environments/ledger_society/tests/test_ladder.py
+      20 s  src/cilib/environments/coupled_society/tests/test_composition.py
+      16 s  src/cilib/environments/delegative_polity/tests/test_validation_ladder.py
+      15 s  src/cilib/environments/value_contagion/tests/test_substrate.py
+      14 s  src/cilib/environments/capital_economy/tests/test_validation_ladder.py
+      13 s  src/cilib/environments/tests/test_sparse_networks.py
+      12 s  src/cilib/environments/commons_harvest/tests/test_substrate.py
+      11 s  src/cilib/lab/paradigms/polycentric/tests/test_mechanism.py
+       9 s  src/cilib/mechanisms/tests/test_economy_levers.py
+       9 s  src/cilib/environments/tests/test_networks.py
+       8 s  tests/test_vectorized_message_passing.py
+       8 s  tests/test_suites.py
+       8 s  src/cilib/mechanisms/tests/test_politics_levers.py
+       8 s  src/cilib/environments/value_contagion/tests/test_sparse_equivalence.py

@@ -1,0 +1,385 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eq-network.org/library/fixtures/explainer.schema.json",
+  "title": "CI Library explainer fixtures (schema_version 1)",
+  "description": "Fixture set for the /library/prototype explainer page: manifest.json + pipeline-subsets.json + system-graphs.json + runs/<env>.<condition>.json. Validated twice from this single document: Python jsonschema on export (experiments/library_explainer/export.py) and ajv in eq-network CI (apps/site/scripts/validate-explainer-fixtures.mjs). Code-level checks BOTH validators must add (JSON Schema cannot express them): (1) each run's global arrays have length T and its node section is empty; (2) checksums in manifest match sha256 of the sibling files; (3) size gates: 100 KB per file, 400 KB per fixture set; (4) pipeline-subsets has exactly 2^len(transforms) rows and row k's enabled list equals the set bits of k; (5) every subsets edge [i,j,kinds] runs forward across batches (j's batch after i's).",
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "numberArray": { "type": "array", "items": { "type": "number" } },
+    "stringArray": { "type": "array", "items": { "type": "string" } },
+    "scheduleSpec": {
+      "type": "object",
+      "required": ["cadence", "phase_offset", "onset"],
+      "properties": {
+        "cadence": { "type": "integer", "minimum": 1 },
+        "phase_offset": { "type": "integer", "minimum": 0 },
+        "onset": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "manifest": {
+      "type": "object",
+      "required": [
+        "schema_version", "kind", "contract_version", "env", "created",
+        "engine", "T", "seed0", "conditions", "run_whitelist", "checksums"
+      ],
+      "properties": {
+        "schema_version": { "const": "1" },
+        "kind": { "const": "library_explainer" },
+        "contract_version": { "const": "1.1" },
+        "env": { "type": "string" },
+        "created": { "type": "string" },
+        "engine": {
+          "type": "object",
+          "required": ["package", "version", "git_rev", "jax_version", "platform"],
+          "properties": {
+            "package": { "type": "string" },
+            "version": { "type": "string" },
+            "git_rev": { "type": "string" },
+            "jax_version": { "type": "string" },
+            "platform": { "type": "string" }
+          }
+        },
+        "T": { "type": "integer", "minimum": 1 },
+        "seed0": { "type": "integer" },
+        "conditions": { "$ref": "#/$defs/stringArray" },
+        "run_whitelist": { "$ref": "#/$defs/stringArray" },
+        "checksums": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    },
+    "subsets": {
+      "type": "object",
+      "required": ["env", "transforms", "rows"],
+      "properties": {
+        "env": { "type": "string" },
+        "transforms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "reads", "writes", "schedule"],
+            "properties": {
+              "name": { "type": "string" },
+              "reads": { "$ref": "#/$defs/stringArray" },
+              "writes": { "$ref": "#/$defs/stringArray" },
+              "schedule": {
+                "oneOf": [{ "$ref": "#/$defs/scheduleSpec" }, { "type": "null" }]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["enabled", "edges", "batches"],
+            "properties": {
+              "enabled": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+              "edges": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "prefixItems": [
+                    { "type": "integer", "minimum": 0 },
+                    { "type": "integer", "minimum": 0 },
+                    {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": { "enum": ["RAW", "WAR", "WAW"] }
+                    }
+                  ],
+                  "minItems": 3,
+                  "maxItems": 3
+                }
+              },
+              "batches": {
+                "type": "array",
+                "items": { "type": "array", "items": { "type": "integer", "minimum": 0 } }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "systemNode": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["id", "kind", "family", "shape"],
+          "properties": {
+            "id": { "type": "string" },
+            "kind": { "const": "field" },
+            "family": {
+              "enum": ["node_attrs", "adj_matrices", "edge_attrs", "global_attrs"]
+            },
+            "shape": { "type": "array", "items": { "type": "integer" } },
+            "bookkeeping": { "const": true }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["id", "kind", "reads", "writes"],
+          "properties": {
+            "id": { "type": "string" },
+            "kind": { "const": "transform" },
+            "reads": { "$ref": "#/$defs/stringArray" },
+            "writes": { "$ref": "#/$defs/stringArray" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "system": {
+      "type": "object",
+      "required": ["nodes", "edges"],
+      "properties": {
+        "nodes": { "type": "array", "items": { "$ref": "#/$defs/systemNode" } },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["from", "to"],
+            "properties": {
+              "from": { "type": "string" },
+              "to": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "systems": {
+      "type": "object",
+      "required": ["env", "conditions"],
+      "properties": {
+        "env": { "type": "string" },
+        "conditions": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "$ref": "#/$defs/system" }
+        }
+      }
+    },
+    "snippets": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["path", "start_line", "end_line", "sha256", "text"],
+        "properties": {
+          "path": { "type": "string" },
+          "start_line": { "type": "integer", "minimum": 1 },
+          "end_line": { "type": "integer", "minimum": 1 },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "text": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "fieldShape": {
+      "type": "object",
+      "required": ["shape", "dtype"],
+      "properties": {
+        "shape": { "type": "array", "items": { "type": "integer" } },
+        "dtype": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "stateShapes": {
+      "type": "object",
+      "required": ["env", "N", "node_types_dtype", "fields"],
+      "properties": {
+        "env": { "type": "string" },
+        "N": { "type": "integer", "minimum": 1 },
+        "node_types_dtype": { "type": "string" },
+        "fields": {
+          "type": "object",
+          "required": ["node_attrs", "adj_matrices", "edge_attrs", "global_attrs"],
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": { "$ref": "#/$defs/fieldShape" }
+          }
+        }
+      }
+    },
+    "scheduleGolden": {
+      "type": "object",
+      "required": ["ticks", "combos"],
+      "properties": {
+        "ticks": { "type": "integer", "minimum": 1 },
+        "combos": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["cadence", "phase_offset", "onset", "fires"],
+            "properties": {
+              "cadence": { "type": "integer", "minimum": 1 },
+              "phase_offset": { "type": "integer", "minimum": 0 },
+              "onset": { "type": "integer", "minimum": 0 },
+              "fires": { "type": "array", "items": { "type": "boolean" } }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "meanSe": {
+      "type": "object",
+      "required": ["mean", "se"],
+      "properties": {
+        "mean": { "type": "number" },
+        "se": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "instrument": {
+      "type": "object",
+      "required": ["id", "kind", "description"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "const": "causal" },
+        "delta": { "type": "number" },
+        "description": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "scorecard": {
+      "type": "object",
+      "required": [
+        "env", "T", "n_seeds", "seed0", "caveat", "instrument", "metrics", "rows"
+      ],
+      "properties": {
+        "env": { "type": "string" },
+        "T": { "type": "integer", "minimum": 1 },
+        "n_seeds": { "type": "integer", "minimum": 2 },
+        "seed0": { "type": "integer" },
+        "caveat": { "type": "string", "minLength": 1 },
+        "instrument": { "$ref": "#/$defs/instrument" },
+        "metrics": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "kind"],
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "kind": { "enum": ["causal", "descriptive"] }
+            },
+            "additionalProperties": false
+          }
+        },
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["condition", "values"],
+            "properties": {
+              "condition": { "type": "string" },
+              "values": {
+                "type": "object",
+                "additionalProperties": { "$ref": "#/$defs/meanSe" }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "influenceCurve": {
+      "type": "object",
+      "required": [
+        "env", "T", "n_seeds", "seed0", "delta", "window", "t0", "caveat",
+        "instrument", "conditions"
+      ],
+      "properties": {
+        "env": { "type": "string" },
+        "T": { "type": "integer", "minimum": 1 },
+        "n_seeds": { "type": "integer", "minimum": 2 },
+        "seed0": { "type": "integer" },
+        "delta": { "type": "number" },
+        "window": { "type": "integer", "minimum": 1 },
+        "t0": { "type": "array", "minItems": 2, "items": { "type": "integer" } },
+        "caveat": { "type": "string", "minLength": 1 },
+        "instrument": { "$ref": "#/$defs/instrument" },
+        "conditions": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "required": ["mean", "se"],
+            "properties": {
+              "mean": { "$ref": "#/$defs/numberArray" },
+              "se": { "$ref": "#/$defs/numberArray" }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "graphMatrix": {
+      "type": "object",
+      "required": [
+        "env", "layer", "N", "seed0", "params", "node_types", "adj", "spectral"
+      ],
+      "properties": {
+        "env": { "type": "string" },
+        "layer": { "type": "string" },
+        "N": { "type": "integer", "minimum": 2 },
+        "seed0": { "type": "integer" },
+        "params": { "type": "object" },
+        "node_types": { "type": "array", "items": { "type": "integer" } },
+        "adj": { "$ref": "#/$defs/numberArray" },
+        "spectral": {
+          "type": "object",
+          "required": ["eigenvalues", "fiedler", "spectral_gap", "fiedler_alignment"],
+          "properties": {
+            "eigenvalues": { "$ref": "#/$defs/numberArray" },
+            "fiedler": { "$ref": "#/$defs/numberArray" },
+            "spectral_gap": { "type": "number" },
+            "fiedler_alignment": { "type": "number", "minimum": 0, "maximum": 1 }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "run": {
+      "type": "object",
+      "required": ["global", "node", "static", "meta"],
+      "properties": {
+        "global": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/numberArray" }
+        },
+        "node": { "type": "object", "maxProperties": 0 },
+        "static": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/numberArray" }
+        },
+        "meta": {
+          "type": "object",
+          "required": ["gameId", "T", "N", "seed", "params", "scalars"],
+          "properties": {
+            "gameId": { "type": "string" },
+            "T": { "type": "integer", "minimum": 1 },
+            "N": { "type": "integer", "minimum": 1 },
+            "seed": { "type": "integer" },
+            "params": { "type": "object" },
+            "scalars": {
+              "type": "object",
+              "additionalProperties": { "type": "number" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

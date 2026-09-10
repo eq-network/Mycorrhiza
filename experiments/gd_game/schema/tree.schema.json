@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eq-network.org/lab/runs/tree.schema.json",
+  "title": "GD game branch tree (schema_version 2)",
+  "description": "One game tree: tree.json + runs/p-*.json. schema_version 2 (2026-07-31) adds: forced_window (the tutorialized free window baked into every run), layout (deterministic force positions from the wait path's aggregated human top-listen edges — the canonical map), and per-path flip_tick (first tick a majority of human top-listen arrows point at AI nodes; null if never). Validated twice from this single document: Python jsonschema on export (experiments/gd_game/export.py) and the dependency-free validator in eq-network CI. Code-level checks BOTH validators must add (JSON Schema cannot express them): (1) each run's node field arrays have length T*N and global fields length T; (2) checksums in tree.json match sha256 of the sibling files; (3) size gates: 400 KB per runs/*.json, 40 MB per tree; (4) every path's choices has one entry per window; (5) every node's affordable card ids extend to a path present in paths; (6) integer index series (top_*_target) are never interpolated across ticks by consumers; (7) layout has exactly N entries.",
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "numberArray": { "type": "array", "items": { "type": "number" } },
+    "ci": {
+      "type": "object",
+      "required": ["point", "lo", "hi"],
+      "properties": {
+        "point": { "type": "number" },
+        "lo": { "type": "number" },
+        "hi": { "type": "number" }
+      }
+    },
+    "tree": {
+      "type": "object",
+      "required": [
+        "schema_version", "contract_version", "tree_id", "env", "suite",
+        "created", "engine", "config_hash", "base_config", "overrides",
+        "T", "n_seeds", "seed0", "representative_seed_index",
+        "windows", "forced_window", "layout", "cards", "cut_cards",
+        "metrics", "trace_fields",
+        "nodes", "paths", "checks", "default_path", "checksums"
+      ],
+      "properties": {
+        "schema_version": { "const": "2" },
+        "contract_version": { "const": "1.1" },
+        "tree_id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "env": { "type": "string" },
+        "suite": { "const": "gradual_disempowerment" },
+        "created": { "type": "string" },
+        "notes": { "type": "string" },
+        "engine": {
+          "type": "object",
+          "required": ["package", "version", "git_rev", "jax_version", "platform"],
+          "properties": {
+            "package": { "type": "string" },
+            "version": { "type": "string" },
+            "git_rev": { "type": "string" },
+            "jax_version": { "type": "string" },
+            "platform": { "type": "string" }
+          }
+        },
+        "config_hash": { "$ref": "#/$defs/sha256" },
+        "base_config": { "type": "object" },
+        "overrides": { "type": "object" },
+        "T": { "type": "integer", "minimum": 1 },
+        "n_seeds": { "type": "integer", "minimum": 1 },
+        "seed0": { "type": "integer" },
+        "representative_seed_index": { "type": "integer", "minimum": 0 },
+        "windows": {
+          "type": "array", "minItems": 1,
+          "items": { "type": "integer", "minimum": 1 }
+        },
+        "forced_window": {
+          "type": "object",
+          "required": ["tick", "card_id"],
+          "properties": {
+            "tick": { "type": "integer", "minimum": 1 },
+            "card_id": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "layout": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "array", "minItems": 2, "maxItems": 2,
+            "items": { "type": "number" }
+          }
+        },
+        "cards": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["card_id", "key", "label", "currency", "price", "param_type", "anchor"],
+            "properties": {
+              "card_id": { "type": "integer", "minimum": 1 },
+              "key": { "type": "string" },
+              "label": { "type": "string" },
+              "currency": { "enum": ["enforcement", "wealth"] },
+              "price": { "type": "number", "minimum": 0 },
+              "param_type": { "enum": ["anchored", "tuned-for-legibility", "arbitrary-but-swept"] },
+              "anchor": { "type": "string" }
+            }
+          }
+        },
+        "cut_cards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["key", "label", "reason"],
+            "properties": {
+              "key": { "type": "string" },
+              "label": { "type": "string" },
+              "reason": { "type": "string" }
+            }
+          }
+        },
+        "metrics": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "direction", "kind", "version", "definition_hash"],
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "direction": { "enum": ["up_good", "down_good", "neutral"] },
+              "kind": { "enum": ["share", "index", "level", "rate", "flag"] },
+              "version": { "type": "integer", "minimum": 1 },
+              "late_window": { "type": "number" },
+              "definition_hash": { "$ref": "#/$defs/sha256" }
+            }
+          }
+        },
+        "trace_fields": {
+          "type": "object",
+          "required": ["global", "node", "static", "derived"],
+          "properties": {
+            "global": { "type": "array", "items": { "type": "string" } },
+            "node": { "type": "array", "items": { "type": "string" } },
+            "static": { "type": "array", "items": { "type": "string" } },
+            "derived": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "nodes": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["prefix", "window", "tick", "resources", "affordable"],
+            "properties": {
+              "prefix": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+              "window": { "type": "integer", "minimum": 0 },
+              "tick": { "type": "integer", "minimum": 1 },
+              "resources": {
+                "type": "object",
+                "required": ["enforcement", "human_wealth_share"],
+                "properties": {
+                  "enforcement": { "type": "number" },
+                  "human_wealth_share": { "type": "number" }
+                }
+              },
+              "affordable": { "type": "array", "items": { "type": "integer", "minimum": 1 } }
+            }
+          }
+        },
+        "paths": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["choices", "id", "values", "resources", "flip_tick"],
+            "properties": {
+              "choices": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+              "id": { "type": "string", "pattern": "^p(-[0-9]+)+$" },
+              "flip_tick": { "type": ["integer", "null"] },
+              "values": {
+                "type": "object",
+                "additionalProperties": { "$ref": "#/$defs/ci" }
+              },
+              "resources": { "type": "array", "items": { "type": "object" } }
+            }
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["group", "desc", "key", "passed"],
+            "properties": {
+              "group": { "enum": ["expectation", "design-gate"] },
+              "desc": { "type": "string" },
+              "key": { "type": "string" },
+              "passed": { "type": "boolean" }
+            }
+          }
+        },
+        "default_path": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "checksums": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    },
+    "run": {
+      "type": "object",
+      "description": "docs/web-trajectory-contract.md v1.1 payload; adj deliberately absent.",
+      "required": ["global", "node", "static", "meta"],
+      "properties": {
+        "global": { "type": "object", "additionalProperties": { "$ref": "#/$defs/numberArray" } },
+        "node": { "type": "object", "additionalProperties": { "$ref": "#/$defs/numberArray" } },
+        "static": { "type": "object", "additionalProperties": { "$ref": "#/$defs/numberArray" } },
+        "system": {
+          "type": "object",
+          "required": ["nodes", "edges"],
+          "properties": {
+            "nodes": { "type": "array", "items": { "type": "object" } },
+            "edges": { "type": "array", "items": { "type": "object" } }
+          }
+        },
+        "meta": {
+          "type": "object",
+          "required": ["gameId", "T", "N", "seed", "params", "scalars"],
+          "properties": {
+            "gameId": { "type": "string" },
+            "T": { "type": "integer", "minimum": 1 },
+            "N": { "type": "integer", "minimum": 1 },
+            "seed": { "type": "integer" },
+            "params": { "type": "object" },
+            "scalars": { "type": "object", "additionalProperties": { "type": "number" } }
+          }
+        }
+      }
+    }
+  }
+}

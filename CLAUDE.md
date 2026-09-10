@@ -1,166 +1,123 @@
-# CLAUDE.md — orientation for coding agents
+# CLAUDE.md — router for coding agents
 
 Collective Intelligence Library ("CI Lib"): a JAX-native framework for composable
 multi-agent simulation. Read [ARCHITECTURE.md](ARCHITECTURE.md) first — it's the
-pattern map. This file is the working contract.
-
-**Alpha direction:** the five benchmark scenarios and their engine mapping live in
-[docs/alpha-context.md](docs/alpha-context.md) (why/what) and
-[docs/alpha-plan.md](docs/alpha-plan.md) (phasing, definitions of done); the
-classical-ABM program frame (validation ladder, mechanisms-attach-via-scheduler,
-influence-now vs influence-from-birth) is [docs/abm-suite-design.md](docs/abm-suite-design.md);
-the economy model register (structural-robustness ensemble, assumptions cards, forking)
-is [docs/model-register-design.md](docs/model-register-design.md), with the cultural
-counterpart (separation × persuasion axes, spectral metrics) in
-[docs/cultural-register-design.md](docs/cultural-register-design.md);
-the environment boundary contract is [docs/game-boundary-design.md](docs/game-boundary-design.md)
-(frozen); the cross-domain coupling grammar — conserved ledgers replacing the κ-gated
-coupling cheats, coupling-implementation invariance as the claim discipline — is
-[docs/ledger-design.md](docs/ledger-design.md) (v1 built:
-`environments/ledger_society`, the suite's shared model); the WP-series suite
-grouping and its cross-model resource map is
-[docs/gd-suite-v0.1.md](docs/gd-suite-v0.1.md) (`environments/suites.py`); the plan
-for dialed web sweeps over precomputed run lattices is
-[docs/dial-lattice-design.md](docs/dial-lattice-design.md) (plan, consumes O0/O1). The next horizon — the state protocol behind a live runner, run records and the
-web connection — is [docs/observability-design.md](docs/observability-design.md) (designed,
-not built). Public counterpart: the unlisted page at eq-network.org/lab.
-
-## Import root
-
-The library installs as `cilib` (distribution: `collective-intelligence-library`).
-Always `from cilib.core import ...`, `from cilib.mechanisms import ...`, etc. There is
-**no** top-level `core`/`engine` package anymore — that was the pre-`src/` layout.
+pattern map. This file routes; local rules live next to the work.
 
 ```bash
 pip install -e .        # editable; required so `import cilib` resolves
 python -m pytest -q     # the safety net — keep it green
 ```
 
-## Where does X go?
+The library installs as `cilib` (distribution: `collective-intelligence-library`).
+Always `from cilib.core import ...`; there is **no** top-level `core`/`engine`
+package — that was the pre-`src/` layout.
 
-| You're adding… | Put it in… | Follow |
-|---|---|---|
-| a decision rule | `src/cilib/agents/` | `agents/README.md` |
-| an atomic `state->state` step | `src/cilib/transformations/` | `transformations/README.md` |
-| a composed institution (market/network/democracy) | `src/cilib/mechanisms/` | `mechanisms/README.md` |
-| a runnable substrate | `src/cilib/environments/` | `environments/README.md` |
-| a general-purpose in-loop readout | `src/cilib/metrics/` | — |
-| a full model tied to one study/paper | `src/cilib/lab/paradigms/<name>/` | `lab/paradigms/README.md` (6-part contract) |
-| paper-specific offline math (EI, causal emergence, …) | `src/cilib/lab/analysis/` | — |
-| a study / sweep | `experiments/<name>/` | `experiments/_template/` |
+## Working ethos — capability first, cold engineering
 
-Each catalog is a plain `REGISTRY = {...}` dict in its `__init__.py`. Adding an entry
-= write the factory + add one dict line + a behavioral test. See [EXTENDING.md](EXTENDING.md).
+*Set by Jonas 2026-08-14, after a design panel drifted into defensibility theater
+(clause lists, seed floors, admission gates). This section outranks any instinct
+to armor the work. We are trying to build something.*
+
+- **Core capability over defensibility.** The engine's value is what it can
+  express and compose: the game-form boundary, the typed transform pipeline,
+  conserved ledgers and ports, shared kernels as single objects. Work that adds
+  compliance machinery instead of capability is fluff — don't propose it.
+  Defensibility is a byproduct of a system that works, never the goal.
+- **No arbitrary numbers.** No invented thresholds, seed floors, scores, or
+  coined metrics. Proper statistics (CIs, paired seeds) are table stakes, not
+  clauses to negotiate. A number is standard practice, or measured with
+  provenance, or it does not appear.
+- **Say "we don't understand this," in place, plainly.** Unknowns are
+  first-class; never smooth one over with a proxy metric or a confident
+  sentence. An open question written down beats a weak answer.
+- **Thorough over fast.** When a result appears, find *why* it appears before it
+  circulates — the insularity floor read as a result until someone asked why it
+  existed. Trace mechanisms end to end.
+- **Red-team by default.** Substantive designs, deposits, and headline results
+  get an independent adversarial pass before commit: spawn subagents mandated to
+  *break* the thing (`/red-team`), not polish it. External perspectives are
+  brought in deliberately, not by accident.
+- **Direct prose, everywhere.** To the point, no fluff; the smart-high-schooler
+  rule from the papers applies to internal docs too.
+
+## Router
+
+| Task | Put it in / read first |
+|---|---|
+| any engine code | `src/cilib/CLAUDE.md`, then the folder's README |
+| a decision rule | `src/cilib/agents/` — its README |
+| an atomic `state->state` step | `src/cilib/transformations/` — its README |
+| a composed institution (market/network/democracy) | `src/cilib/mechanisms/` — its README |
+| a runnable substrate | `src/cilib/environments/` — its README |
+| a general-purpose in-loop readout | `src/cilib/metrics/` |
+| a full model tied to one study/paper | `src/cilib/lab/paradigms/<name>/` — its README (6-part contract) |
+| paper-specific offline math | `src/cilib/lab/analysis/` |
+| a study / sweep / figures | `experiments/` — `experiments/CLAUDE.md` |
+| a design doc, deposit, or any card/README prose | `docs/CLAUDE.md` |
+| a WP paper | `docs/paper-style.md` + the paper's vault README |
+| web/view work | the boundary section below |
+
+Each catalog is a plain `REGISTRY = {...}` dict in its `__init__.py`. Adding an
+entry = factory + one dict line + a behavioral test. See [EXTENDING.md](EXTENDING.md).
 
 **The lab razor:** would we merge and maintain a stranger's PR to this file the way
 we'd maintain a library API? No → it goes under `cilib.lab` (research payload, no
-stability promise), not a catalog. A *mechanism* is swappable into any pipeline by any
-future study; a *paradigm* wires many pieces together to make one paper's argument.
+stability promise), not a catalog.
+
+Design docs live in `docs/`; each states its own status and history — read the one
+the task touches, not all of them. The two that constrain code:
+[docs/game-boundary-design.md](docs/game-boundary-design.md) (frozen `GameSpec`
+boundary) and [docs/ledger-design.md](docs/ledger-design.md) (conserved-ledger
+coupling grammar). Current direction lives in the project intent (observability
+O0/O1 is the next engine move).
 
 ## ⟦BOUNDARY⟧ Engine ⇄ view — the two-project contract
 
-*Marked deliberately (2026-07-30, direction set by Jonas): the engine is rigorous
-simulation code; the web side is a frontend project that showcases it. Crossings are
-versioned artifacts, never shared logic.*
+*Set 2026-07-30, direction by Jonas.* The engine (this repo, `src/cilib`) is the
+ONLY place model dynamics exist; a behavior not reproducible here from
+`(env, config, seed)` does not exist, whatever any web page shows. The view
+(eq-network) renders versioned artifacts the engine exported — it never originates
+dynamics, metrics, or parameters. Changing an artifact schema is a contract change:
+version it and update both sides in one intent, or don't.
 
-- **Engine = this repo (`src/cilib`), and it is the ONLY place model dynamics exist** —
-  substrates, couplings, mechanisms, instruments, metrics: Python/JAX, tested,
-  registered. A behavior that is not reproducible here from `(env, config, seed)` does
-  not exist, whatever any web page shows.
-- **View = eq-network.** It renders artifacts the engine exported. It never originates
-  dynamics, metrics, parameters, or "small tweaks" to any of them. Every number the
-  page displays must be traceable to an engine run.
-- **Crossings are versioned artifacts only.** Today: the trajectory JSON + system-graph
-  fixtures of [docs/web-trajectory-contract.md](docs/web-trajectory-contract.md),
-  regenerated by `examples/05_export_trajectory.py` — pasted, never hand-edited. After
-  O0/O1: run records per `docs/observability-design.md`. Changing an artifact schema is
-  a contract change: version it, update both sides in one intent, or don't.
-- **The JS dynamics port in `eq-network/.../playground.html` is acknowledged debt,**
-  tolerated only because instant sliders on a static host predate the run-record path,
-  and held to parity by exported fixtures. Never extend it: a new environment,
-  coupling, or metric gets **no hand-port** — it reaches the page through the
-  run-record path (O2) or it waits. All model changes land engine-first; the page
-  follows by regenerated artifact.
+The JS dynamics port in `eq-network/apps/playground/src/engine/kernel.js` is
+acknowledged debt, and its true size (audited 2026-08-14 against git history) is
+**four hand-ported models**, not one:
 
-## Load-bearing conventions
+- `runEconomy` + `runPolitical` — 2026-07-30, the original workbench. Parity vs
+  the engine: **unmeasured**.
+- the `ledger_society` coupled model — the 2026-08-01 swap (commit 2026-08-02),
+  the only port with measured parity (48 seeds/side, ensemble means ± SE;
+  [docs/ledger-design.md](docs/ledger-design.md) §8).
+- `runPolity` — a WP3 `delegative_polity` port, added 2026-08-07 with the
+  showcase scroll Jonas directed; an extension after the never-extend rule, and
+  unrecorded here until this audit. Parity: **unmeasured**.
 
-- **State lives in `GraphState`, not in objects.** Agents are pure factories; the
-  evolving arrays live in `node_attrs` / `adj_matrices`. Don't add stateful classes.
-- **Static config is closed over by transform factories, never stored in
-  `global_attrs`.** `global_attrs` is static pytree aux — putting swept/per-step data
-  there forces recompiles. `GraphState` carries only *evolving* arrays.
-- **No data-dependent Python control flow inside transforms.** Replace `if traced:`
-  with `jnp.where` / `lax.cond` (e.g. `core.category.gated`) so it traces under `lax.scan`.
-- **Pure tier vs eager tier.** Pure (`core.scan`) is the default and the only tier
-  that `vmap`s over seeds. Use the eager tier (`core.time`) *only* for genuinely
-  effectful agents (LLM/HTTP).
-- **Mechanisms/transformations declare `.reads` / `.writes`** via `@transform` so
-  `compile_pipeline` can derive order. Same-family mechanisms keep disjoint writes.
-- **The trajectory is the memory ceiling, not the state.** `default_trace` returning
-  raw per-agent arrays costs O(T·N) — at N≥500 that is ~3000× the state itself, and
-  it is what stops long or large runs (not the dense adjacency, which
-  `sparse_friendship` already fixes). No metric in this repo needs the joint (T, N)
-  array. Reduce the *agent* axis in `trace_fn` (a (T,) scalar series is ~8 KB and
-  worth keeping), and fold anything per-agent or long-window with a
-  `metrics/reducers.py` `Reducer` via `EnvSpec.run_reduced` — O(1) carry, same number
-  to float32 rounding. `examples/08_streaming_metrics.py` measures the gap.
-- **Simplicity is a hard requirement here.** Prefer short, inspectable code and
-  deletion over new abstraction. A catalog you can read in one screen beats a clever
-  registry framework.
-- **Test counts are not evidence to outsiders.** Never cite "N tests passing" in the
-  whitepaper, docs, or any external communication — passing many tests does not matter
-  to readers. Keep the suite green internally; don't market the count.
+Consequence, stated plainly: the /showcase page's WP-model numbers currently have
+unknown fidelity to the engine models the papers are built on. The rule stands —
+never extend the kernel further; a new environment, coupling, or metric reaches
+the page through the run-record path (O2) or it waits, and O2 is what retires all
+four ports at once. A port *swap* requires Jonas's direction plus measured
+ensemble parity, a pasted `system_graph()` fixture, and engine-derived series.
+
+## ⟦DEAD END⟧ The GD game
+
+*Verdict by Jonas 2026-08-01: both 2026-07-31 game routes — the precomputed branch
+tree and live levers behind a service — were worthless; full record in
+[docs/gd-game-postmortem.md](docs/gd-game-postmortem.md), read it before proposing
+anything that calls itself a game. The rule: do not restart either route, and build
+nothing until a design starts from what the player does second by second and only
+then asks what engine serves it. Leftover code (`mechanisms/families/`,
+`mechanisms/interventions.py`, `journey_*` metrics) exists because of the game; its
+presence is not a reason to revive either route.*
 
 ## Verifying a change
 
-- Behavior-preserving refactor → `python -m pytest -q` must stay green (currently 236).
+- Behavior-preserving refactor → `python -m pytest -q` stays green.
 - A change to a paradigm's composition → assert the new pipeline is numerically
   identical to the old one for a fixed seed before deleting the old path.
 - A new catalog entry → a behavioral test asserting the *mechanism* (direction /
   ordering), not bit-exact numbers.
-
-## Writing papers (the WP series)
-
-Papers live in the vault (`…/Obsidian/Research/Projects/CI Library/papers/`); the repo
-stays code-only. Style rules, set by Jonas 2026-07-30:
-
-- **Framing is a per-paper decision, not a series rule.** Each paper's vault README
-  states what kind of document it is; check there before drafting. WP1 is a readable
-  paper with the machinery demoted to appendices; WP2 is a model spec — assumptions and
-  modeling choices first, narrative secondary (both Jonas's calls, 2026-07-30).
-- **Abstracts summarize in words only.** No numeric results in the abstract, and keep
-  it short — on the order of 100 words.
-- **No parenthetical asides in prose.** If it matters, give it its own sentence; if it
-  doesn't, cut it. Citation commands and mathematics are exempt.
-- **No invented vocabulary.** Every term is either standard in the literature or an
-  engine config field. Plain descriptive English over coinages — "amplification", never
-  "the flood".
-- Existing house rules carry over: ordering claims only, parameters typed
-  anchored / tuned-for-legibility / arbitrary-but-swept, `%% VERIFY` on
-  memory-written bib entries, mismatches reported never retuned, no test-count citations.
-
-## Claims and model-choice context (all repo prose, not just papers)
-
-The WP rules above bind deposits, cards, design docs, and journal entries too. Agents
-writing project prose systematically overclaim; these rules are the counterweight:
-
-- **A number travels with its context or it doesn't travel.** Quoting a result outside
-  its home card requires substrate + seed count + error bar (or an explicit "no CI
-  computed"). Without a CI, it is a sign/ordering claim — magnitude language stays in
-  the home card next to its caveats. (Live example of the failure: the transfer-gap
-  "defended 0.128 > undefended 0.109" difference is 0.019 on 8 seeds with no reported
-  CI, yet circulates as "the paper's claim in its sharpest form".)
-- **Model choices carry their provenance at the point of use.** A dynamic that exists
-  because a channel was added or tuned until the effect appeared must say so wherever
-  the effect is claimed — e.g. coupled_society's flywheel arrows were added (2026-07-27)
-  precisely because sealed and coupled were identical without them; any doc citing "the
-  flywheel" owes the reader that sentence. Parameter typing (anchored /
-  tuned-for-legibility / arbitrary-but-swept) applies in cards and deposits, not only
-  papers.
-- **Tag claim kinds in deposits:** decision (a human set direction) / design conjecture
-  (untested) / measured (n, CI) / external literature (verified or `%% VERIFY`).
-  Simulated-expert output (forest walks, round tables) is Stage 1–2 by definition and
-  never lends a real person's authority to a claim in another doc.
-- **Deposits get a referee paragraph before commit:** "what would a critic press on",
-  written against the deposit itself. The assumptions cards already do this well
-  ("what a critic should press on") — the discipline extends to every deposit doc.
+- Test counts are internal only — never cite "N tests passing" in any external
+  communication.

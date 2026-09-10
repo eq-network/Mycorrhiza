@@ -15,6 +15,7 @@ consumers of it. Run them from the repo root with `python -m experiments.<name>.
 | `governed_harvest/` | earlier harvest-extraction prototype |
 | `fishing_commons/` | state factory + type-contract reference |
 | `assumption_audits/` | one-shot receipt probes behind the lab site's "we checked" claims (floors, defense grids, cadence scan) — deliberately not the template shape |
+| `perf_baseline/` | where the time goes: compile vs run, eager vs jit, seed-batch efficiency, population scaling, per environment — the measured starting point for any engine optimisation |
 
 See [EXTENDING.md](../EXTENDING.md) for the recipe and [ARCHITECTURE.md](../ARCHITECTURE.md) for
 how experiments sit above the catalogs and paradigms.

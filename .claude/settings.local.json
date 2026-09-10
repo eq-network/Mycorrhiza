@@ -18,7 +18,9 @@
       "Read(//c/Users/Jonas/AppData/Local/Temp/claude/C--GitHub-Mycorrhiza/tasks/**)",
       "Bash(pip show:*)",
       "WebFetch(domain:miguelemos.co)",
-      "WebFetch(domain:blog.block.science)"
+      "WebFetch(domain:blog.block.science)",
+      "PowerShell(Get-ChildItem 'C:\\\\GitHub\\\\eq-network\\\\src' -Recurse -File | Where-Object { $_.FullName -notmatch 'node_modules' } | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\('C:\\\\GitHub\\\\eq-network\\\\src\\\\',''\\) })",
+      "Bash(find *)"
     ]
   }
 }
